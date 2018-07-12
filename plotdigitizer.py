@@ -91,7 +91,6 @@ def filter_plot( img ):
     # - Open followed by close 
     # - No smoothing etc. They destroy the data plots.
     hist, bins = np.histogram( img.ravel(), 256, [0, 256], normed = True )
-    print( hist )
 
 def extract_trajectories( img ):
     # First some filtering.
@@ -137,18 +136,21 @@ def find_trajectory( img, pixel, T ):
         y1 = (r - y - offY)/sY
         res.append( (x1, y1) )
 
-    x, y = zip(*sorted(res))
+    # sort by x-axis.
+    res = sorted( res )
     if args_.plot:
-        plot_traj( x, y )
-    return (x,y), np.vstack((img,new))
+        plot_traj( res )
+    return res, np.vstack((img,new))
 
-def plot_traj( x, y ):
+def plot_traj( traj ):
     import matplotlib.pyplot as plt
+    x, y = zip( *traj )
     plt.plot( x, y )
     plt.savefig( 'traj.png' )
 
 def compute_parameters( img ):
     params = {}
+    assert img is not None
     hs, bs = np.histogram( img.ravel(), 256//2, [0, 256], normed = True )
     hist = sorted( zip(hs,bs), reverse = True)
     # Most often occuring pixel is backgorund. Second most is likely to be
@@ -164,8 +166,9 @@ def process( img ):
     global args_
     params_ = compute_parameters( img )
     T = locate_and_erase_axis( img, extra = args_.erase_near_axis )
-    trajs, img = find_trajectory( img, int(params_['foreground']), T)
+    traj, img = find_trajectory( img, int(params_['foreground']), T)
     save_debug_imgage( 'final.png', img )
+    return traj
 
 
 def main( args ):
@@ -173,14 +176,25 @@ def main( args ):
     global img_, args_
     args_ = args
     infile = args.input
-    logging.info( 'Processing %s' % infile )
+    logging.info( 'Got file: %s' % infile )
     img_ = cv2.imread( infile, 0 )
-    save_debug_imgage( 'original.png', img_ )
-    points_ = list_to_points( args.point )
+
+    #  save_debug_imgage( 'original.png', img_ )
+
+    points_ = list_to_points( args.data_point )
     coords_ = list_to_points( args.location )
     if len(coords_) != len(points_):
+        logging.info( "Either location is not specified or their number don't"
+            " match with given datapoints."
+            )
         ask_user_to_locate_points(points_, img_)
-    process( img_ )
+
+    traj = process( img_ )
+    outfile = args.input or '%s.traj.csv' % args.input 
+    with open( outfile, 'w' ) as f:
+        for r in traj:
+            f.write( '%g %g\n' % (r))
+    logging.info( "Wrote trajectory to %s" % outfile )
 
 if __name__ == '__main__':
     import argparse
@@ -199,7 +213,7 @@ if __name__ == '__main__':
         , required = False, default = 2
         , help = 'Number of axis (currently only 2 axis are supported)'
         )
-    parser.add_argument('--point', '-p'
+    parser.add_argument('--data-point', '-d'
         , required = True
         , action = 'append'
         , help = 'Please specify a datapoint. You have to manually click them on '
@@ -211,7 +225,7 @@ if __name__ == '__main__':
     parser.add_argument('--location', '-l'
         , required = False, default = []
         , action = 'append'
-        , help = 'Location of a given point on figure in pixels (integer).'
+        , help = 'Location of a data-point on figure in pixels (integer).'
                  ' These values should appear in the same order as -p option.'
                  ' If not given, you will be asked to click on the figure.'
         )
@@ -220,14 +234,28 @@ if __name__ == '__main__':
         , required = False, default = 255, type = int
         , help = 'Background color (grayscale: 0=black, 255=white)'
         )
+
     parser.add_argument('--foreground', '-f'
         , required = False, default = 0, type = int
         , help = 'Datapoint color (grayscale: 0=black, 255=white)'
         )
+
     parser.add_argument('--erase_near_axis', '-e'
         , required = False, default = 1
         , type = int 
         , help = 'Number of rows and columns to ignore near both axis.'
+        )
+
+    parser.add_argument('--plot', '-p'
+        , required = False
+        , action = 'store_true'
+        , help = 'Plot the final result. Requires matplotlib.'
+        )
+
+    parser.add_argument('--output', '-o'
+        , required = False, type = str
+        , help = 'Name of the output file else trajectory will be written to '
+                ' <input>.traj.csv'
         )
     class Args: pass 
     args = Args()
