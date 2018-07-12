@@ -27,6 +27,7 @@ windowName_ = "PlotDigitizer"
 cv2.namedWindow( windowName_ )
 ix_, iy_ = 0, 0
 params_  = {}
+args_    = None
 
 # NOTE: remember these are cv2 coordinates and not numpy.
 coords_  = []
@@ -96,7 +97,8 @@ def extract_trajectories( img ):
     # First some filtering.
     img = filter_plot( img )
 
-def locate_and_erase_axis( img ):
+def locate_and_erase_axis( img, extra = 0 ):
+    # extra: extra rows and cols to erase. Help in containing error near axis.
     global mapping_
     # compute the transformation between old and new axis.
     T = compute_scaling_offset( points_, coords_ )
@@ -104,8 +106,8 @@ def locate_and_erase_axis( img ):
     # x-axis and y-axis chopping can be computed by offset.
     offX, offY = T[1]
     offCols, offRows = int(round(offX)), int(round(offY))
-    img[r-offRows:, :] = params_[ 'background']
-    img[:,:offCols]  = params_['background']
+    img[r-offRows-extra:, :] = params_[ 'background']
+    img[:,:offCols+extra]  = params_['background']
     return T
 
 def find_trajectory( img, pixel, T ):
@@ -146,15 +148,17 @@ def compute_parameters( img ):
 
 def process( img ):
     global params_
+    global args_
     params_ = compute_parameters( img )
-    T = locate_and_erase_axis( img )
+    T = locate_and_erase_axis( img, extra = args_.erase_near_axis )
     trajs, img = find_trajectory( img, int(params_['foreground']), T)
     save_debug_imgage( 'final.png', img )
 
 
 def main( args ):
     global coords_, points_
-    global img_
+    global img_, args_
+    args_ = args
     infile = args.input
     logging.info( 'Processing %s' % infile )
     img_ = cv2.imread( infile, 0 )
@@ -206,6 +210,11 @@ if __name__ == '__main__':
     parser.add_argument('--foreground', '-f'
         , required = False, default = 0, type = int
         , help = 'Datapoint color (grayscale: 0=black, 255=white)'
+        )
+    parser.add_argument('--erase_near_axis', '-e'
+        , required = False, default = 1
+        , type = int 
+        , help = 'Number of rows and columns to ignore near both axis.'
         )
     class Args: pass 
     args = Args()
