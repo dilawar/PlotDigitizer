@@ -13,7 +13,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 import logging
+import helper
 import math
+from collections import defaultdict
 
 import logging
 logging.basicConfig(level=logging.DEBUG,
@@ -24,13 +26,18 @@ logging.basicConfig(level=logging.DEBUG,
 windowName_ = "PlotDigitizer" 
 cv2.namedWindow( windowName_ )
 ix_, iy_ = 0, 0
+params_  = {}
 
 # NOTE: remember these are cv2 coordinates and not numpy.
-coords_ = []
-
-points_ = []
+coords_  = []
+points_  = []
 mapping_ = {}
-img_    = None
+img_     = None
+debug_   = True
+
+def save_debug_imgage( filename, img ):
+    if debug_:
+        cv2.imwrite( filename, img )
 
 def click_points( event, x, y, flags, params ):
     global img_
@@ -46,7 +53,10 @@ cv2.setMouseCallback( windowName_, click_points )
 
 def show_frame( img, msg = 'MSG: ' ):
     global windowName_
-    cv2.imshow( windowName_, img )
+    msgImg = np.zeros( shape=(50, img.shape[1]) )
+    cv2.putText( msgImg, msg, (1, 40), 0, 0.5, 255 )
+    newImg  =  np.vstack( (img, msgImg))
+    cv2.imshow( windowName_, newImg )
 
 def ask_user_to_locate_points(  points, img ):
     global coords_
@@ -86,23 +96,60 @@ def extract_trajectories( img ):
     # First some filtering.
     img = filter_plot( img )
 
-def chop_axis( img ):
+def locate_and_erase_axis( img ):
     global mapping_
-
     # compute the transformation between old and new axis.
     T = compute_scaling_offset( points_, coords_ )
     r, c = img.shape
     # x-axis and y-axis chopping can be computed by offset.
     offX, offY = T[1]
     offCols, offRows = int(round(offX)), int(round(offY))
-    imgAtOrigin = img[:r-offRows, offCols:]
-    cv2.imwrite( 'imgwithoutaxis.png', imgAtOrigin )
-    traj = extract_trajectories( imgAtOrigin )
-    print( traj )
+    img[r-offRows:, :] = params_[ 'background']
+    img[:,:offCols]  = params_['background']
+    return T
 
+def find_trajectory( img, pixel, T ):
+    res = []
+    r, c = img.shape 
+    new = np.zeros_like( img )
+    Y, X = np.where( img == pixel )
+    traj = defaultdict( list )
+    for x,y in zip(X, Y):
+        traj[x].append( y )
+
+    (sX,sY), (offX, offY) = T
+    for k in traj:
+        x = k
+        y = int(np.median(traj[k]))
+        cv2.circle( new, (x,y), 2, 255 )
+        x1 = (x - offX)/sX
+        y1 = (r - y - offY)/sY
+        res.append( (x1, y1) )
+
+    x, y = zip(*sorted(res))
+    plt.plot( x, y )
+    plt.savefig( 'traj.png' )
+
+    return None, np.vstack((img,new))
+
+def compute_parameters( img ):
+    params = {}
+    hs, bs = np.histogram( img.ravel(), 256//2, [0, 256], normed = True )
+    hist = sorted( zip(hs,bs), reverse = True)
+    # Most often occuring pixel is backgorund. Second most is likely to be
+    # primary trajectory.
+    params[ 'histogram_binsize2' ]  = hs
+    params[ 'pixel_freq' ]  = hist
+    params[ 'background' ] = int( hist[0][1] )
+    params[ 'foreground' ] = int(hist[1][1])
+    return params
 
 def process( img ):
-    img = chop_axis( img )
+    global params_
+    params_ = compute_parameters( img )
+    T = locate_and_erase_axis( img )
+    trajs, img = find_trajectory( img, int(params_['foreground']), T)
+    save_debug_imgage( 'final.png', img )
 
 
 def main( args ):
@@ -111,7 +158,7 @@ def main( args ):
     infile = args.input
     logging.info( 'Processing %s' % infile )
     img_ = cv2.imread( infile, 0 )
-    cv2.imwrite( 'original.png', img_ )
+    save_debug_imgage( 'original.png', img_ )
     points_ = list_to_points( args.point )
     coords_ = list_to_points( args.location )
     if len(coords_) != len(points_):
@@ -150,6 +197,15 @@ if __name__ == '__main__':
         , help = 'Location of a given point on figure in pixels (integer).'
                  ' These values should appear in the same order as -p option.'
                  ' If not given, you will be asked to click on the figure.'
+        )
+
+    parser.add_argument('--background', '-b'
+        , required = False, default = 255, type = int
+        , help = 'Background color (grayscale: 0=black, 255=white)'
+        )
+    parser.add_argument('--foreground', '-f'
+        , required = False, default = 0, type = int
+        , help = 'Datapoint color (grayscale: 0=black, 255=white)'
         )
     class Args: pass 
     args = Args()
