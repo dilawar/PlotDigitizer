@@ -15,7 +15,7 @@ Should be converted to
 2. Then we run the script like this.
 
 ```
-./plotdigitizer.py -i ./figures/trimmed.png -d 0,0 -d 10,0 -d 0,1
+./plotdigitizer.py -i ./figures/trimmed.png -p 0,0 -p 10,0 -p 0,1
 ```
 
 Option `-i` accepts the input file. The important bit is repeating `-d` options.

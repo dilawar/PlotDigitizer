@@ -1,4 +1,6 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+from __future__ import print_function, division
     
 __author__           = "Dilawar Singh"
 __copyright__        = "Copyright 2017-, Dilawar Singh"
@@ -214,7 +216,7 @@ def main():
         , required = False, default = 2
         , help = 'Number of axis (currently only 2 axis are supported)'
         )
-    parser.add_argument('--data-point', '-d'
+    parser.add_argument('--data-point', '-p'
         , required = True
         , action = 'append'
         , help = 'Please specify a datapoint. You have to manually click them on '
@@ -247,7 +249,7 @@ def main():
         , help = 'Number of rows and columns to ignore near both axis.'
         )
 
-    parser.add_argument('--plot', '-p'
+    parser.add_argument('--plot'
         , required = False
         , action = 'store_true'
         , help = 'Plot the final result. Requires matplotlib.'
