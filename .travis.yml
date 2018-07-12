@@ -1,0 +1,8 @@
+language: python
+python:
+- 3.6
+- 2.5
+
+script:
+    python setup.py install --user
+    plotdigitizer -i ./figures/trimmed.png
