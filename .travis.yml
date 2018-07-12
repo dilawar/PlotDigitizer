@@ -1,7 +1,7 @@
 language: python
 python:
 - 3.6
-- 2.5
+- 2.7
 
 script:
     - python setup.py install 
