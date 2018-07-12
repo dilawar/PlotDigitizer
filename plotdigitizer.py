@@ -33,7 +33,7 @@ coords_  = []
 points_  = []
 mapping_ = {}
 img_     = None
-debug_   = True
+debug_   = False
 
 def save_debug_imgage( filename, img ):
     if debug_:
@@ -173,11 +173,15 @@ def run( args ):
     global coords_, points_
     global img_, args_
     args_ = args
+
+    if args_.debug:
+        debug_ = True 
+
     infile = args.input
     logging.info( 'Got file: %s' % infile )
     img_ = cv2.imread( infile, 0 )
 
-    #  save_debug_imgage( 'original.png', img_ )
+    save_debug_imgage( 'original.png', img_ )
 
     points_ = list_to_points( args.data_point )
     coords_ = list_to_points( args.location )
@@ -253,6 +257,10 @@ def main():
         , required = False, type = str
         , help = 'Name of the output file else trajectory will be written to '
                 ' <input>.traj.csv'
+        )
+    parser.add_argument('--debug', '-d'
+        , required = False, action = 'store_true'
+        , help = 'Debug mode'
         )
     class Args: pass 
     args = Args()
