@@ -9,12 +9,12 @@ __status__           = "Development"
 
 import sys
 import os
-import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 import logging
 import helper
 import math
+
 from collections import defaultdict
 
 import logging
@@ -120,19 +120,32 @@ def find_trajectory( img, pixel, T ):
         traj[x].append( y )
 
     (sX,sY), (offX, offY) = T
-    for k in traj:
+    for k in sorted(traj):
         x = k
-        y = int(np.median(traj[k]))
-        cv2.circle( new, (x,y), 2, 255 )
+        vals = np.array(traj[k])
+
+        # These are in opencv pixles. So there valus starts from the top. 0
+        # belogs to top row. Therefore > rather than <.
+        vals = vals[ np.where( vals > vals.mean() ) ]
+        if  len(vals) == 0:
+            print( 'x', end = '' )
+            continue
+
+        y = np.median( vals )
+        cv2.circle( new, (x,int(y)), 2, 255 )
         x1 = (x - offX)/sX
         y1 = (r - y - offY)/sY
         res.append( (x1, y1) )
 
     x, y = zip(*sorted(res))
+    if args_.plot:
+        plot_traj( x, y )
+    return (x,y), np.vstack((img,new))
+
+def plot_traj( x, y ):
+    import matplotlib.pyplot as plt
     plt.plot( x, y )
     plt.savefig( 'traj.png' )
-
-    return None, np.vstack((img,new))
 
 def compute_parameters( img ):
     params = {}
