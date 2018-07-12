@@ -12,9 +12,8 @@ import os
 import numpy as np
 import cv2
 import logging
-import helper
 import math
-
+import argparse
 from collections import defaultdict
 
 import logging
@@ -170,8 +169,7 @@ def process( img ):
     save_debug_imgage( 'final.png', img )
     return traj
 
-
-def main( args ):
+def run( args ):
     global coords_, points_
     global img_, args_
     args_ = args
@@ -196,8 +194,7 @@ def main( args ):
             f.write( '%g %g\n' % (r))
     logging.info( "Wrote trajectory to %s" % outfile )
 
-if __name__ == '__main__':
-    import argparse
+def main():
     # Argument parser.
     description = '''Digitize image.'''
     parser = argparse.ArgumentParser(description=description)
@@ -260,4 +257,7 @@ if __name__ == '__main__':
     class Args: pass 
     args = Args()
     parser.parse_args(namespace=args)
-    main( args )
+    run( args )
+
+if __name__ == '__main__':
+    main()
