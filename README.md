@@ -24,9 +24,21 @@ These are the data-points. We need at least 3 of them to map the axis with pixel
 In this example, we have given three data-points `0,0`, `10,0` and `0,1`. We are going to click 
 on these three points on the image later. Make sure to click in the same order. 
 
+
+You won't be prompted for locating the data-points.
+
 __IMP:__ Left bottom corner of the  image is `(0,0)`. 
 
 Once you have clicked on these points, the algorithm will extract the trajectory. 
+
+If you already know the location of these coordinates, you can pass them via
+command line using `-l` options e.g.
+
+```
+./plotdigitizer.py -i ./figures/trimmed.png -p 0,0 -p 10,0 -p 0,1 -l 10,10 -l 200,20 -l 10,27
+```
+
+# Limitations
 
 Currently this script has following limitations:
 
