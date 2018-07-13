@@ -30,6 +30,8 @@ line, it will also plot the omputed data-points. This requires `matplotlib`.
 
 ![](./figures/traj.png)
 
+Notice the errors near the boxes; since we have not trimmed them.
+
 __IMP:__ Left bottom corner of the  image is `(0,0)`. 
 
 Once you have clicked on these points, the algorithm will extract the trajectory. 
