@@ -171,6 +171,14 @@ def process( img ):
     save_debug_imgage( 'final.png', img )
     return traj
 
+def plot_traj( traj ):
+    global args_
+    import matplotlib.pyplot as plt
+    X, Y = zip(*traj)
+    plt.plot( X, Y )
+    plt.savefig( '_final.png' )
+    plt.close()
+
 def run( args ):
     global coords_, points_
     global img_, args_
@@ -183,7 +191,7 @@ def run( args ):
     logging.info( 'Got file: %s' % infile )
     img_ = cv2.imread( infile, 0 )
 
-    save_debug_imgage( 'original.png', img_ )
+    save_debug_imgage( '_original.png', img_ )
 
     points_ = list_to_points( args.data_point )
     coords_ = list_to_points( args.location )
@@ -194,7 +202,11 @@ def run( args ):
         ask_user_to_locate_points(points_, img_)
 
     traj = process( img_ )
-    outfile = args.input or '%s.traj.csv' % args.input 
+
+    if args_.plot:
+        plot_traj( traj )
+
+    outfile = args.output or '%s.traj.csv' % args.input 
     with open( outfile, 'w' ) as f:
         for r in traj:
             f.write( '%g %g\n' % (r))
@@ -221,9 +233,8 @@ def main():
         , action = 'append'
         , help = 'Please specify a datapoint. You have to manually click them on '
                 ' the figure. At least 2 points are required. 3 are recommended. e.g. '
-                '   -p 0,0 -p 1,0 -p 0,1 '
-                'Make sure that point are comma separated without any space e.g.'
-                ' -p 0, 1 is wrong.'
+                '   -p 0,0 -p 10,0 -p 0,1 '
+                'Make sure that point are comma separated without any space.'
         )
     parser.add_argument('--location', '-l'
         , required = False, default = []
