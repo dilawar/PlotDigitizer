@@ -1,6 +1,6 @@
 # PlotDigitizer
 
-Python3 app to digitize plot (Under developement)
+A python (python3) script to digitize plot (Under developement)
 
 # Flow
 
