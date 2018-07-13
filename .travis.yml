@@ -4,6 +4,8 @@ python:
 - 2.7
 
 script:
+    - export DISPLAY=:99.0
+    - sh -e /etc/init.d/xvfb start
     - python setup.py install 
     - plotdigitizer -i ./figures/trimmed.png -p 0,0 -p 20,0 -p 0,1 \
         -l 24,25 -l 143,25 -l 24,104
