@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/dilawar/PlotDigitizer.svg?branch=master)](https://travis-ci.org/dilawar/PlotDigitizer)
+
 # PlotDigitizer
 
 A python (python3) script to digitize plot (Under developement)
