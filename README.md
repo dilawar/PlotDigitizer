@@ -6,9 +6,10 @@ A python (python3) script to digitize plot (Under developement)
 
 1. Remove all the text from the image. Only axis and plot should be left.
 
-![This is from MacFadden and Koshland, PNAS 1990](./figures/original.png)
+This is from MacFadden and Koshland, PNAS 1990. 
+![](./figures/original.png)
 
-Should be converted to (Ideally you should also remove the top border). You can use `gimp`
+It should be trimmed. Ideally you should also remove the top border. You can use `gimp`
 or `imagemagick` or any other tool for cropping.
 
 ![](./figures/trimmed.png)
@@ -23,6 +24,11 @@ Option `-i` accepts the input file. The important options is the repeating `-p` 
 These are the data-points. We need at least 3 of them to map the axis with pixels in image.
 In this example, we have given three data-points `0,0`, `10,0` and `0,1`. We are going to click 
 on these three points on the image later. Make sure to click in the same order. 
+
+3. The datapoints will be dumped to a csv file. If `--plot` option is given from command 
+line, it will also plot the omputed data-points. This requires `matplotlib`.
+
+![](./figures/traj.png)
 
 __IMP:__ Left bottom corner of the  image is `(0,0)`. 
 
