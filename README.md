@@ -6,9 +6,10 @@ Python3 app to digitize plot (Under developement)
 
 1. Remove all the text from the image. Only axis and plot should be left.
 
-![](./figures/original.png)
+![This is from MacFadden and Koshland, PNAS 1990](./figures/original.png)
 
-Should be converted to 
+Should be converted to (Ideally you should also remove the top border). You can use `gimp`
+or `imagemagick` or any other tool for cropping.
 
 ![](./figures/trimmed.png)
 
@@ -18,21 +19,20 @@ Should be converted to
 ./plotdigitizer.py -i ./figures/trimmed.png -p 0,0 -p 10,0 -p 0,1
 ```
 
-Option `-i` accepts the input file. The important bit is repeating `-d` options.
-These are the data-points. We need at least 3 of them. In this example, we are
-telling the script that I am going to click on 3 points on the image
-respectively.  These clicks will map to those 3 data-points. Make sure to click
-them in order. 
+Option `-i` accepts the input file. The important options is the repeating `-p` options.
+These are the data-points. We need at least 3 of them to map the axis with pixels in image.
+In this example, we have given three data-points `0,0`, `10,0` and `0,1`. We are going to click 
+on these three points on the image later. Make sure to click in the same order. 
 
 __IMP:__ Left bottom corner of the  image is `(0,0)`. 
 
-Once you have clicked on these points, the algorithm will run and extract the
-trajectory. 
+Once you have clicked on these points, the algorithm will extract the trajectory. 
 
-Currently this script has following limitations 
+Currently this script has following limitations:
 
-- Background must not be transparent. Might work with transparent background but
+- Background must not be transparent. It might work with transparent background but
   I've not tested it.
+- Only b/w images are supported for now. Color images will be converted to grayscale upon reading.
 - One image should have only one trajectory.
 
 You might be interested in more versatile
