@@ -25,7 +25,6 @@ logging.basicConfig(level=logging.DEBUG,
     )
 
 windowName_ = "PlotDigitizer" 
-cv2.namedWindow( windowName_ )
 ix_, iy_ = 0, 0
 params_  = {}
 args_    = None
@@ -36,6 +35,19 @@ points_  = []
 mapping_ = {}
 img_     = None
 debug_   = False
+
+def find_center( vec ):
+    # Find mode of the vector. We do it in following way. We take the bin which
+    # has most member and take the mean of the bin.
+    # NOTE: This the opencv coordinates. max is min here in y-direction.
+    u, s, m = np.mean( vec ), np.std( vec ), np.min(vec)
+    return m
+    cv = s / u
+    print( cv, m, u )
+    if cv > 0.1:
+        return np.median(vec) - s
+    return m
+
 
 def save_debug_imgage( filename, img ):
     if debug_:
@@ -51,7 +63,6 @@ def click_points( event, x, y, flags, params ):
         logging.info( "MOUSE clicked on %s,%s" % (x,y))
         coords_.append( (x, y) )
 
-cv2.setMouseCallback( windowName_, click_points )
 
 def show_frame( img, msg = 'MSG: ' ):
     global windowName_
@@ -62,6 +73,8 @@ def show_frame( img, msg = 'MSG: ' ):
 
 def ask_user_to_locate_points(  points, img ):
     global coords_
+    cv2.namedWindow( windowName_ )
+    cv2.setMouseCallback( windowName_, click_points )
     while len(coords_) < len(points):
         i = len(coords_)
         p = points[i]
@@ -72,7 +85,6 @@ def ask_user_to_locate_points(  points, img ):
         key = cv2.waitKey(1) & 0xFF
         if key == 'q':
             break
-
     logging.info( "You clicked %s" % coords_ )
 
 def list_to_points( points ):
@@ -131,7 +143,7 @@ def find_trajectory( img, pixel, T ):
             print( 'x', end = '' )
             continue
 
-        y = np.median( vals )
+        y = find_center( vals )
         cv2.circle( new, (x,int(y)), 2, 255 )
         x1 = (x - offX)/sX
         y1 = (r - y - offY)/sY
@@ -144,10 +156,18 @@ def find_trajectory( img, pixel, T ):
     return res, np.vstack((img,new))
 
 def plot_traj( traj ):
+    import matplotlib as mpl
+    mpl.use( 'Agg' )
     import matplotlib.pyplot as plt
+    try:
+        mpl.style.use( 'classic' )
+    except Exception as e:
+        pass
+    mpl.rcParams['text.usetex'] = False
+    
     x, y = zip( *traj )
     plt.plot( x, y )
-    plt.savefig( 'traj.png' )
+    plt.savefig( '_final.png' )
 
 def compute_parameters( img ):
     params = {}
@@ -171,14 +191,6 @@ def process( img ):
     save_debug_imgage( 'final.png', img )
     return traj
 
-def plot_traj( traj ):
-    global args_
-    import matplotlib.pyplot as plt
-    X, Y = zip(*traj)
-    plt.plot( X, Y )
-    plt.savefig( '_final.png' )
-    plt.close()
-
 def run( args ):
     global coords_, points_
     global img_, args_
@@ -195,6 +207,7 @@ def run( args ):
 
     points_ = list_to_points( args.data_point )
     coords_ = list_to_points( args.location )
+
     if len(coords_) != len(points_):
         logging.info( "Either location is not specified or their number don't"
             " match with given datapoints."
