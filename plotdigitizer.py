@@ -107,7 +107,7 @@ def filter_plot( img ):
     # Following filters are applied.
     # - Open followed by close 
     # - No smoothing etc. They destroy the data plots.
-    hist, bins = np.histogram( img.ravel(), 256, [0, 256], normed = True )
+    hist, bins = np.histogram( img.ravel(), 256, [0, 256], density=True )
 
 def extract_trajectories( img ):
     # First some filtering.
