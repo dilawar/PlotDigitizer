@@ -19,7 +19,7 @@ import argparse
 from collections import defaultdict
 
 import logging
-logging.basicConfig(level=logging.DEBUG,
+logging.basicConfig(level=logging.INFO,
     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
     datefmt='%m-%d %H:%M',
     )
@@ -157,17 +157,16 @@ def find_trajectory( img, pixel, T ):
 
 def plot_traj( traj ):
     import matplotlib as mpl
-    mpl.use( 'Agg' )
     import matplotlib.pyplot as plt
     try:
         mpl.style.use( 'classic' )
     except Exception as e:
         pass
     mpl.rcParams['text.usetex'] = False
-    
     x, y = zip( *traj )
     plt.plot( x, y )
-    plt.savefig( '_final.png' )
+    plt.show()
+    plt.close()
 
 def compute_parameters( img ):
     params = {}
