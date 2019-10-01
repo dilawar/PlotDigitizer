@@ -4,7 +4,7 @@
 
 A python (python3) script to digitize plot (Under developement)
 
-# Flow
+# Usage
 
 1. Remove all the text from the image. Only axis and plot should be left.
 
@@ -24,27 +24,31 @@ or `imagemagick` or any other tool for cropping.
 
 Option `-i` accepts the input file. 
 
-We need at least 3 of them to map the axis onto the pixels in the image. These 
-points are passed by repeated `-p` options. In the example above, we have given
-three data-points `0,0`, `10,0` and `0,1`. We are going to click 
-on these three points later. Make sure to click in the same order. 
+We need at least 3 of them to map the coordinate systems onto the pixel-system
+in the image. These points are passed by repeated `-p` options. In the example
+above, we have given three data-points `0,0` (where x-axis and y-axis intesect)
+, `20,0` (a point on x-axis) and `0,1` (a point on y-axis).
 
-3. The datapoints will be dumped to a csv file. If `--plot` option is given from command 
-line, it will also plot the omputed data-points. This requires `matplotlib`.
+We are going to click on the image to locate these coordinates later. Make sure
+to click in the same order. 
+
+3. The data-points will be dumped to a csv file. If `--plot` option is given from command 
+line, it will also plot the computed data-points. This requires `matplotlib`.
 
 ![](./figures/traj.png)
 
 Notice the errors near the boxes; since we have not trimmed them.
 
-__IMP:__ Left bottom corner of the  image is `(0,0)`. 
+# Passing the location of coordinates manually
 
-Once you have clicked on these points, the algorithm will extract the trajectory. 
+__IMP:__ Bottom left corner of the image is `(0,0)` in most plots. However, for
+opencv which we are using in this project, top-left is mapped to `(0,0)`. This
+may cause subtle effects if you are not careful when passing values of location
+manually.  See issue #1 for discussion. I got these values from program `gimp`.
 
-If you already know the location of these coordinates, you can pass them via
-command line using `-l` options e.g.
-
-```
-./plotdigitizer.py -i ./figures/trimmed.png -p 0,0 -p 10,0 -p 0,1 -l 10,10 -l 200,20 -l 10,27
+```bash
+./plotdigitizer.py -i ./figures/trimmed.png -p 0,0 -p 20,0 -p 0,1 \
+    -l 22,295 -l 142,295 -l 22,215 --plot
 ```
 
 # Limitations

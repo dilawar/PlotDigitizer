@@ -15,11 +15,12 @@ import numpy as np
 import cv2
 import logging
 import math
+import tempfile
 import argparse
 from collections import defaultdict
 
 import logging
-logging.basicConfig(level=logging.DEBUG,
+logging.basicConfig(level=logging.INFO,
     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
     datefmt='%m-%d %H:%M',
     )
@@ -35,6 +36,9 @@ points_  = []
 mapping_ = {}
 img_     = None
 debug_   = False
+
+def temp():
+    return tempfile.gettempdir()
 
 def find_center( vec ):
     # Find mode of the vector. We do it in following way. We take the bin which
@@ -61,7 +65,7 @@ def click_points( event, x, y, flags, params ):
     if event == cv2.EVENT_LBUTTONDOWN:
         y = r - y
         logging.info( "MOUSE clicked on %s,%s" % (x,y))
-        coords_.append( (x, y) )
+        coords_.append((x, y))
 
 
 def show_frame( img, msg = 'MSG: ' ):
@@ -71,7 +75,7 @@ def show_frame( img, msg = 'MSG: ' ):
     newImg  =  np.vstack( (img, msgImg))
     cv2.imshow( windowName_, newImg )
 
-def ask_user_to_locate_points(  points, img ):
+def ask_user_to_locate_points(points, img):
     global coords_
     cv2.namedWindow( windowName_ )
     cv2.setMouseCallback( windowName_, click_points )
@@ -88,7 +92,7 @@ def ask_user_to_locate_points(  points, img ):
     logging.info( "You clicked %s" % coords_ )
 
 def list_to_points( points ):
-    ps = [ [ float(a) for a in x.split(',')] for x in points]
+    ps = [[float(a) for a in x.split(',')] for x in points]
     return ps
 
 def compute_scaling_offset( p, P ):
@@ -157,19 +161,18 @@ def find_trajectory( img, pixel, T ):
 
 def plot_traj( traj ):
     import matplotlib as mpl
-    mpl.use( 'Agg' )
     import matplotlib.pyplot as plt
     try:
         mpl.style.use( 'classic' )
     except Exception as e:
         pass
     mpl.rcParams['text.usetex'] = False
-    
     x, y = zip( *traj )
     plt.plot( x, y )
-    plt.savefig( '_final.png' )
+    plt.show()
+    plt.close()
 
-def compute_parameters( img ):
+def compute_foregrond_background_stats( img ):
     params = {}
     assert img is not None
     hs, bs = np.histogram( img.ravel(), 256//2, [0, 256], normed = True )
@@ -185,10 +188,10 @@ def compute_parameters( img ):
 def process( img ):
     global params_
     global args_
-    params_ = compute_parameters( img )
+    params_ = compute_foregrond_background_stats( img )
     T = locate_and_erase_axis( img, extra = args_.erase_near_axis )
     traj, img = find_trajectory( img, int(params_['foreground']), T)
-    save_debug_imgage( 'final.png', img )
+    save_debug_imgage(os.path.join(temp(),'final.png'), img )
     return traj
 
 def run( args ):
@@ -203,16 +206,20 @@ def run( args ):
     logging.info( 'Got file: %s' % infile )
     img_ = cv2.imread( infile, 0 )
 
-    save_debug_imgage( '_original.png', img_ )
+    save_debug_imgage(os.path.join(temp(), '_original.png'), img_ )
 
     points_ = list_to_points( args.data_point )
     coords_ = list_to_points( args.location )
 
     if len(coords_) != len(points_):
-        logging.info( "Either location is not specified or their number don't"
+        logging.debug( "Either location is not specified or their numbers don't"
             " match with given datapoints."
             )
         ask_user_to_locate_points(points_, img_)
+    else:
+        # User specified coordinates are in opencv axis i.e. top-left is 0,0
+        yoffset = img_.shape[0]
+        coords_ = [(x, yoffset-y) for (x,y) in coords_]
 
     traj = process( img_ )
 
