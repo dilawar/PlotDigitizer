@@ -1,11 +1,14 @@
 PY = python3
-FIGURE = ./figures/trimmed.png
 
-all : test
+all : test2
     
 
-test: ./plotdigitizer.py
-	$(PY) $< -i $(FIGURE) -p 0,0 -p 20,0 -p 0,1 \
+test1: ./plotdigitizer.py
+	$(PY) $< -i ./figures/trimmed.png -p 0,0 -p 20,0 -p 0,1 \
 	    -l 22,295 -l 142,296 -l 23,215 \
 	    --plot
 
+test2: ./plotdigitizer.py
+	$(PY) $< -i ./figures/un2.png -p 0,0 -p 20,0 -p 0,1 \
+	    -l 2,754 -l 897,754 -l 643,583 \
+	    --plot
