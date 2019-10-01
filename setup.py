@@ -17,6 +17,7 @@ setup(
     version = "0.0.3",
     description = "Digitize plots and extract trajectories.",
     long_description = readme,
+    long_description_content_type = 'text/markdown',
     packages = [ 'PlotDigitizer' ],
     package_dir = { 'PlotDigitizer' : '.' },
     install_requires = [ 'numpy', 'opencv-python' ],
