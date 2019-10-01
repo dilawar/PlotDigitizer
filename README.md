@@ -22,10 +22,12 @@ or `imagemagick` or any other tool for cropping.
 ./plotdigitizer.py -i ./figures/trimmed.png -p 0,0 -p 10,0 -p 0,1
 ```
 
-Option `-i` accepts the input file. The important options is the repeating `-p` options.
-These are the data-points. We need at least 3 of them to map the axis with pixels in image.
-In this example, we have given three data-points `0,0`, `10,0` and `0,1`. We are going to click 
-on these three points on the image later. Make sure to click in the same order. 
+Option `-i` accepts the input file. 
+
+We need at least 3 of them to map the axis onto the pixels in the image. These 
+points are passed by repeated `-p` options. In the example above, we have given
+three data-points `0,0`, `10,0` and `0,1`. We are going to click 
+on these three points later. Make sure to click in the same order. 
 
 3. The datapoints will be dumped to a csv file. If `--plot` option is given from command 
 line, it will also plot the omputed data-points. This requires `matplotlib`.
