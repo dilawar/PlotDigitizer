@@ -8,11 +8,11 @@ A python (python3) script to digitize plot (Under developement)
 
 1. Remove all the text from the image. Only axis and plot should be left.
 
-This is from MacFadden and Koshland, PNAS 1990. 
+For example, following image is from MacFadden and Koshland, PNAS 1990. 
 ![](./figures/original.png)
 
-It should be trimmed. Ideally you should also remove the top border. You can use `gimp`
-or `imagemagick` or any other tool for cropping.
+It should be trimmed. Remove the top border. You can use `gimp`
+or `imagemagick` or `gthumb` or any other tool for cropping.
 
 ![](./figures/trimmed.png)
 
@@ -24,13 +24,10 @@ or `imagemagick` or any other tool for cropping.
 
 Option `-i` accepts the input file. 
 
-We need at least 3 of them to map the coordinate systems onto the pixel-system
-in the image. These points are passed by repeated `-p` options. In the example
-above, we have given three data-points `0,0` (where x-axis and y-axis intesect)
-, `20,0` (a point on x-axis) and `0,1` (a point on y-axis).
-
-We are going to click on the image to locate these coordinates later. Make sure
-to click in the same order. 
+We need three `-p` (points) to map the coordinates onto the pixels
+of the image. In the example above, we have given three coordinates: `0,0` (where x-axis and y-axis intesect)
+, `20,0` (a point on x-axis) and `0,1` (a point on y-axis). To map thse points on the pixels, we are going 
+to click on the image to locate these coordinates later. __Make sure to click in the same order.__
 
 3. The data-points will be dumped to a csv file. If `--plot` option is given from command 
 line, it will also plot the computed data-points. This requires `matplotlib`.
@@ -41,7 +38,7 @@ Notice the errors near the boxes; since we have not trimmed them.
 
 # Passing the location of coordinates manually
 
-__IMP:__ Bottom left corner of the image is `(0,0)` in most plots. However, for
+__IMP/FIXME:__ Bottom left corner of the image is `(0,0)` in most plots. However, for
 opencv which we are using in this project, top-left is mapped to `(0,0)`. This
 may cause subtle effects if you are not careful when passing values of location
 manually.  See issue #1 for discussion. I got these values from program `gimp`.
