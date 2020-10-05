@@ -9,5 +9,6 @@ before_script:
 
 script:
     - python3 setup.py install --user
-    - xvfb-run -a plotdigitizer -i ./figures/trimmed.png -p 0,0 -p 20,0 -p 0,1 -l 22,295 -l 142,296 -l 23,215 --plot
+    # https://docs.travis-ci.com/user/gui-and-headless-browsers/#Using-xvfb-to-Run-Tests-That-Require-a-GUI
+    - xvfb-run plotdigitizer -i ./figures/trimmed.png -p 0,0 -p 20,0 -p 0,1 -l 22,295 -l 142,296 -l 23,215 --plot
 
