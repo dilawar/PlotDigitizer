@@ -4,7 +4,7 @@
 
 A python (python3) script to digitize plot (Under developement)
 
-# Usage
+## Usage
 
 1. Remove all the text from the image. Only axis and plot should be left.
 
@@ -38,7 +38,7 @@ requires `matplotlib`.
 
 Notice the errors near the boxes; since we have not trimmed them.
 
-# Passing the location of coordinates manually
+### Passing the location of coordinates manually
 
 __IMP/FIXME:__ Bottom left corner of the image is `(0,0)` in most plots. However, for
 opencv which we are using in this project, top-left is mapped to `(0,0)`. This
@@ -50,7 +50,14 @@ manually.  See issue #1 for discussion. I got these values from program `gimp`.
     -l 22,295 -l 142,295 -l 22,215 --plot output.png
 ```
 
-# Limitations
+## Dependencies
+
+Install Python bindings of `opencv` manually. On ubuntu box, it is available in
+official repositories ie., `$ sudo apt install python3-opencv`. You can also
+use the Python wheel available here https://pypi.org/project/opencv-python/
+e.g. `$ pip install opencv-python --user`.
+
+## Limitations
 
 Currently this script has following limitations:
 

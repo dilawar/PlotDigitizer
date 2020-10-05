@@ -9,3 +9,5 @@ test: ./plotdigitizer.py
 	    -l 22,295 -l 142,296 -l 23,215 \
 	    --plot
 
+upload:
+	twine upload 
