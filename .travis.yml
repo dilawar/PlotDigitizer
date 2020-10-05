@@ -11,6 +11,6 @@ script:
     - sh -e /etc/init.d/xvfb start
     - python setup.py install 
     - xvfb-run plotdigitizer.py -i ./figures/trimmed.png -p 0,0 -p 20,0 -p 0,1 \
-	    -l 22,295 -l 142,296 -l 23,215 \
-	    --plot
+      -l 22,295 -l 142,296 -l 23,215 \
+      --plot
 
