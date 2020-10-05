@@ -5,6 +5,7 @@ services:
 before_script:
     - sudo apt update -y
     - sudo apt -y install python3-matplotlib python3-opencv python3-numpy python3-setuptools
+    - sudo apt -y install python3-tk
 
 script:
     - python3 setup.py install --user
