@@ -2,7 +2,8 @@ services:
     - xvfb
 
 before_script:
-    - sudo apt install python3-matplotlib python3-opencv python3-numpy python3-setuptools
+    - sudo apt update -y
+    - sudo apt -y install python3-matplotlib python3-opencv python3-numpy python3-setuptools
 
 script:
     - python3 -m pip install matplotlib numpy --upgrade
