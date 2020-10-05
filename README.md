@@ -24,13 +24,15 @@ or `imagemagick` or `gthumb` or any other tool for cropping.
 
 Option `-i` accepts the input file. 
 
-We need three `-p` (points) to map the coordinates onto the pixels
-of the image. In the example above, we have given three coordinates: `0,0` (where x-axis and y-axis intesect)
-, `20,0` (a point on x-axis) and `0,1` (a point on y-axis). To map thse points on the pixels, we are going 
-to click on the image to locate these coordinates later. __Make sure to click in the same order.__
+We need three `-p` (points) to map the coordinates onto the pixels of the
+image. In the example above, we have given three coordinates: `0,0` (where
+x-axis and y-axis intesect) , `20,0` (a point on x-axis) and `0,1` (a point on
+y-axis). To map thse points on the pixels, we are going to click on the image
+to locate these coordinates later. __Make sure to click in the same order.__
 
-3. The data-points will be dumped to a csv file. If `--plot` option is given from command 
-line, it will also plot the computed data-points. This requires `matplotlib`.
+3. The data-points will be dumped to a csv file. If `--plot output.png` is
+passed, it will also plot the computed data-points to `output.png`. This
+requires `matplotlib`.
 
 ![](./figures/traj.png)
 
@@ -45,7 +47,7 @@ manually.  See issue #1 for discussion. I got these values from program `gimp`.
 
 ```bash
 ./plotdigitizer.py -i ./figures/trimmed.png -p 0,0 -p 20,0 -p 0,1 \
-    -l 22,295 -l 142,295 -l 22,215 --plot
+    -l 22,295 -l 142,295 -l 22,215 --plot output.png
 ```
 
 # Limitations
