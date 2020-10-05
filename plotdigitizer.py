@@ -168,23 +168,22 @@ def find_trajectory(img, pixel, T):
     # sort by x-axis.
     res = sorted(res)
     if args_.plot:
-        plot_traj(res)
+        plot_traj(res, args_.plot)
     return res, np.vstack((img, new))
 
 
-def plot_traj(traj):
-    import matplotlib as mpl
+def plot_traj(traj, outfile=''):
     import matplotlib.pyplot as plt
-
-    try:
-        mpl.style.use("classic")
-    except Exception as e:
-        pass
-    mpl.rcParams["text.usetex"] = False
     x, y = zip(*traj)
     plt.plot(x, y)
-    plt.show()
-    plt.close()
+
+    # If filename is given.
+    if isinstance(outfile, str):
+        plt.savefig(outfile)
+        print(f'[INFO] Saved to {outfile}')
+    else:
+        plt.show()
+        plt.close()
 
 
 def compute_foregrond_background_stats(img):
@@ -317,8 +316,9 @@ def main():
     parser.add_argument(
         "--plot",
         required=False,
-        action="store_true",
-        help="Plot the final result. Requires matplotlib.",
+        default='', 
+        type=str,
+        help="Plot the final result to a file. Requires matplotlib.",
     )
 
     parser.add_argument(
