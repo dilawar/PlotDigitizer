@@ -14,7 +14,7 @@ classifiers = [ 'Development Status :: 4 - Beta',
 
 setup(
     name = "PlotDigitizer",
-    version = "0.0.3",
+    version = "0.0.4",
     description = "Digitize plots and extract trajectories.",
     long_description = readme,
     long_description_content_type = 'text/markdown',
