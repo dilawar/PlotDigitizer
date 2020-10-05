@@ -20,7 +20,7 @@ setup(
     long_description_content_type = 'text/markdown',
     packages = [ 'PlotDigitizer' ],
     package_dir = { 'PlotDigitizer' : '.' },
-    install_requires = [ 'numpy', 'opencv-python' ],
+    install_requires = [ 'numpy' ],
     author = "Dilawar Singh",
     author_email = "dilawars@ncbs.res.in",
     url = "http://github.com/dilawar/PlotDigitizer",
