@@ -1,15 +1,11 @@
-language: python
-
-python:
-    - 3.6
-    - 3.8
-
 services:
     - xvfb
 
+before_script:
+    - sudo apt install python3-matplotlib python3-opencv python3-numpy python3-setuptools
+
 script:
-    - python setup.py install 
-    - xvfb-run -a plotdigitizer -i ./figures/trimmed.png -p 0,0 -p 20,0 -p 0,1 \
-      -l 22,295 -l 142,296 -l 23,215 \
-      --plot
+    - python3 -m pip install matplotlib numpy --upgrade
+    - python3 setup.py install --user
+    - xvfb-run -a plotdigitizer -i ./figures/trimmed.png -p 0,0 -p 20,0 -p 0,1 -l 22,295 -l 142,296 -l 23,215 --plot
 
