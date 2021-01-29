@@ -1,13 +1,14 @@
-language: python
-python:
-- 3.6
-- 2.7
+dist: bionic
+services:
+    - xvfb
+
+before_script:
+    - sudo apt update -y
+    - sudo apt -y install python3-matplotlib python3-opencv python3-numpy python3-setuptools
+    - sudo apt -y install python3-tk
 
 script:
-    - export DISPLAY=:99.0
-    - sh -e /etc/init.d/xvfb start
-    - python setup.py install 
-    - plotdigitizer.py -i ./figures/trimmed.png -p 0,0 -p 20,0 -p 0,1 \
-	    -l 22,295 -l 142,296 -l 23,215 \
-	    --plot
+    - python3 setup.py install --user
+    # https://docs.travis-ci.com/user/gui-and-headless-browsers/#Using-xvfb-to-Run-Tests-That-Require-a-GUI
+    - plotdigitizer -i ./figures/trimmed.png -p 0,0 -p 20,0 -p 0,1 -l 22,295 -l 142,296 -l 23,215 --plot out.png
 

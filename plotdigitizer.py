@@ -1,37 +1,35 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from __future__ import print_function, division
 
 __author__ = "Dilawar Singh"
 __copyright__ = "Copyright 2017-, Dilawar Singh"
-__version__ = "1.0.0"
 __maintainer__ = "Dilawar Singh"
-__email__ = "dilawars@ncbs.res.in"
+__email__ = "dilawar.s.rajput@gmail.com"
 __status__ = "Development"
 
 import os
+import typing as T
 import numpy as np
 import cv2
 import logging
 import tempfile
 import argparse
 from collections import defaultdict
-import logging
+
 logging.basicConfig(
     level=logging.WARN,
-    format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
-    datefmt='%m-%d %H:%M',
+    format="%(asctime)s %(name)-12s %(levelname)-8s %(message)s",
+    datefmt="%m-%d %H:%M",
 )
 
 windowName_ = "PlotDigitizer"
 ix_, iy_ = 0, 0
-params_ = {}
+params_ : T.Dict[str, T.Any] = {}
 args_ = None
 
 # NOTE: remember these are cv2 coordinates and not numpy.
-coords_ = []
-points_ = []
-mapping_ = {}
+coords_ : T.List[T.List[float]] = []
+points_ : T.List[T.List[float]] = []
 img_ = None
 debug_ = False
 
@@ -44,20 +42,21 @@ def find_center(vec):
     # Find mode of the vector. We do it in following way. We take the bin which
     # has most member and take the mean of the bin.
     # NOTE: This the opencv coordinates. max is min here in y-direction.
-    return vec.mean() 
+    return vec.mean()
 
 
 def plot_traj(traj):
     import matplotlib as mpl
     import matplotlib.pyplot as plt
-    mpl.rcParams['text.usetex'] = False
+
+    mpl.rcParams["text.usetex"] = False
     x, y = zip(*traj)
     plt.figure()
     plt.subplot(211)
-    plt.imshow(img_, interpolation='none', cmap='gray')
-    plt.title('Original')
+    plt.imshow(img_, interpolation="none", cmap="gray")
+    plt.title("Original")
     plt.subplot(212)
-    plt.title('Reconstructed')
+    plt.title("Reconstructed")
     plt.plot(x, y)
     plt.tight_layout()
     plt.show()
@@ -79,7 +78,7 @@ def click_points(event, x, y, flags, params):
         coords_.append((x, y))
 
 
-def show_frame(img, msg='MSG: '):
+def show_frame(img, msg="MSG: "):
     global windowName_
     msgImg = np.zeros(shape=(50, img.shape[1]))
     cv2.putText(msgImg, msg, (1, 40), 0, 0.5, 255)
@@ -95,17 +94,17 @@ def ask_user_to_locate_points(points, img):
         i = len(coords_)
         p = points[i]
         pLeft = len(points) - len(coords_)
-        show_frame(img, 'Please click on %s (%d left)' % (p, pLeft))
+        show_frame(img, "Please click on %s (%d left)" % (p, pLeft))
         if len(coords_) == len(points):
             break
         key = cv2.waitKey(1) & 0xFF
-        if key == 'q':
+        if key == "q":
             break
     logging.info("You clicked %s" % coords_)
 
 
-def list_to_points(points):
-    ps = [[float(a) for a in x.split(',')] for x in points]
+def list_to_points(points) -> T.List[T.List[float]]:
+    ps = [[float(a) for a in x.split(",")] for x in points]
     return ps
 
 
@@ -120,15 +119,14 @@ def compute_scaling_offset(p, P):
 
 def findScalingAndPrepareImage(img, extra=0):
     # extra: extra rows and cols to erase. Help in containing error near axis.
-    global mapping_
     # compute the transformation between old and new axis.
     T = compute_scaling_offset(points_, coords_)
     r, c = img.shape
     # x-axis and y-axis chopping can be computed by offset.
     offX, offY = T[1]
     offCols, offRows = int(round(offX)), int(round(offY))
-    img[r - offRows - extra:, :] = params_['background']
-    img[:, :offCols + extra] = params_['background']
+    img[r - offRows - extra :, :] = params_["background"]
+    img[:, : offCols + extra] = params_["background"]
     return T
 
 
@@ -167,17 +165,17 @@ def find_trajectory(img, pixel, T, error=0):
     return res, np.vstack((img, new))
 
 
-def compute_foregrond_background_stats(img):
+def compute_foregrond_background_stats(img) -> T.Dict[str, T.Any]:
     params = {}
     assert img is not None
     hs, bs = np.histogram(img.ravel(), 256 // 2, [0, 256], density=True)
     hist = sorted(zip(hs, bs), reverse=True)
     # Most often occuring pixel is backgorund. Second most is likely to be
     # primary trajectory.
-    params['histogram_binsize2'] = hs
-    params['pixel_freq'] = hist
-    params['background'] = int(hist[0][1])
-    params['foreground'] = int(hist[1][1])
+    params["histogram_binsize2"] = hs
+    params["pixel_freq"] = hist
+    params["background"] = int(hist[0][1])
+    params["foreground"] = int(hist[1][1])
     return params
 
 
@@ -186,8 +184,8 @@ def process(img):
     global args_
     params_ = compute_foregrond_background_stats(img)
     T = findScalingAndPrepareImage(img, extra=args_.erase_near_axis)
-    traj, img = find_trajectory(img, int(params_['foreground']), T)
-    save_debug_imgage(os.path.join(temp(), 'final.png'), img)
+    traj, img = find_trajectory(img, int(params_["foreground"]), T)
+    save_debug_imgage(os.path.join(temp(), "final.png"), img)
     return traj
 
 
@@ -196,17 +194,19 @@ def run(args):
     global img_, args_
     args_ = args
     infile = args.input
-    logging.info('Got file: %s' % infile)
+    logging.info("Got file: %s" % infile)
     img_ = cv2.imread(infile, cv2.IMREAD_GRAYSCALE)
 
-    save_debug_imgage(os.path.join(temp(), '_original.png'), img_)
+    save_debug_imgage(os.path.join(temp(), "_original.png"), img_)
 
     points_ = list_to_points(args.data_point)
     coords_ = list_to_points(args.location)
 
     if len(coords_) != len(points_):
-        logging.debug("Either location is not specified or their numbers don't"
-                      " match with given datapoints.")
+        logging.debug(
+            "Either location is not specified or their numbers don't"
+            " match with given datapoints."
+        )
         ask_user_to_locate_points(points_, img_)
     else:
         # User specified coordinates are in opencv axis i.e. top-left is 0,0
@@ -218,99 +218,98 @@ def run(args):
     if args_.plot:
         plot_traj(traj)
 
-    outfile = args.output or '%s.traj.csv' % args.input
-    with open(outfile, 'w') as f:
+    outfile = args.output or "%s.traj.csv" % args.input
+    with open(outfile, "w") as f:
         for r in traj:
-            f.write('%g %g\n' % (r))
+            f.write("%g %g\n" % (r))
     logging.info("Wrote trajectory to %s" % outfile)
 
 
 def main():
     # Argument parser.
-    description = '''Digitize image.'''
+    description = """Digitize image."""
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('--input',
-                        '-i',
-                        required=True,
-                        help='Input image file.')
-    parser.add_argument('--type',
-                        '-t',
-                        required=False,
-                        default='line',
-                        help='Type of image (xy line)')
+    parser.add_argument("--input", "-i", required=True, help="Input image file.")
     parser.add_argument(
-        '--num-axis',
-        '-n',
+        "--type", "-t", required=False, default="line", help="Type of image (xy line)"
+    )
+    parser.add_argument(
+        "--num-axis",
+        "-n",
         required=False,
         default=2,
-        help='Number of axis (currently only 2 axis are supported)')
+        help="Number of axis (currently only 2 axis are supported)",
+    )
     parser.add_argument(
-        '--data-point',
-        '-p',
+        "--data-point",
+        "-p",
         required=True,
-        action='append',
-        help='Please specify a datapoint. You have to manually click them on '
-        ' the figure. At least 2 points are required. 3 are recommended. e.g. '
-        '   -p 0,0 -p 10,0 -p 0,1 '
-        'Make sure that point are comma separated without any space.')
+        action="append",
+        help="Please specify a datapoint. You have to manually click them on "
+        " the figure. At least 2 points are required. 3 are recommended. e.g. "
+        "   -p 0,0 -p 10,0 -p 0,1 "
+        "Make sure that point are comma separated without any space.",
+    )
     parser.add_argument(
-        '--location',
-        '-l',
+        "--location",
+        "-l",
         required=False,
         default=[],
-        action='append',
-        help='Location of a data-point on figure in pixels (integer).'
-        ' These values should appear in the same order as -p option.'
-        ' If not given, you will be asked to click on the figure.')
+        action="append",
+        help="Location of a data-point on figure in pixels (integer)."
+        " These values should appear in the same order as -p option."
+        " If not given, you will be asked to click on the figure.",
+    )
 
     parser.add_argument(
-        '--background',
-        '-b',
+        "--background",
+        "-b",
         required=False,
         default=255,
         type=int,
-        help='Background color (grayscale: 0=black, 255=white)')
-
-    parser.add_argument('--foreground',
-                        '-f',
-                        required=False,
-                        default=0,
-                        type=int,
-                        help='Datapoint color (grayscale: 0=black, 255=white)')
+        help="Background color (grayscale: 0=black, 255=white)",
+    )
 
     parser.add_argument(
-        '--erase_near_axis',
-        '-e',
+        "--foreground",
+        "-f",
+        required=False,
+        default=0,
+        type=int,
+        help="Datapoint color (grayscale: 0=black, 255=white)",
+    )
+
+    parser.add_argument(
+        "--erase_near_axis",
+        "-e",
         required=False,
         default=1,
         type=int,
-        help='Number of rows and columns to ignore near both axis.')
-
-    parser.add_argument('--plot',
-                        required=False,
-                        action='store_true',
-                        help='Plot the final result. Requires matplotlib.')
+        help="Number of rows and columns to ignore near both axis.",
+    )
 
     parser.add_argument(
-        '--output',
-        '-o',
+        "--plot",
+        required=False,
+        action="store_true",
+        help="Plot the final result. Requires matplotlib.",
+    )
+
+    parser.add_argument(
+        "--output",
+        "-o",
         required=False,
         type=str,
-        help='Name of the output file else trajectory will be written to '
-        ' <input>.traj.csv')
-    parser.add_argument('--debug',
-                        '-d',
-                        required=False,
-                        action='store_true',
-                        help='Debug mode')
+        help="Name of the output file else trajectory will be written to "
+        " <input>.traj.csv",
+    )
+    parser.add_argument(
+        "--debug", "-d", required=False, action="store_true", help="Debug mode"
+    )
 
-    class Args:
-        pass
-
-    args = Args()
-    parser.parse_args(namespace=args)
+    args = parser.parse_args()
     run(args)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
