@@ -1,7 +1,6 @@
 PY = python3
 
-all : test2
-    
+all : test2 test1
 
 test1: ./plotdigitizer.py
 	$(PY) $< -i ./figures/trimmed.png -p 0,0 -p 20,0 -p 0,1 \

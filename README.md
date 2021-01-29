@@ -2,7 +2,7 @@
 
 # PlotDigitizer
 
-A python (python3) script to digitize plot (Under developement)
+A python3 script to digitize plot.
 
 ## Usage
 
@@ -38,12 +38,13 @@ requires `matplotlib`.
 
 Notice the errors near the boxes; since we have not trimmed them.
 
-### Passing the location of coordinates manually
+### Mapping coordinates at command line (batch mode)
 
-__IMP/FIXME:__ Bottom left corner of the image is `(0,0)` in most plots. However, for
-opencv which we are using in this project, top-left is mapped to `(0,0)`. This
-may cause subtle effects if you are not careful when passing values of location
-manually.  See issue #1 for discussion. I got these values from program `gimp`.
+There is subtle difference here. Most plots use bottom left corner of the image
+as `(0,0)` while the opencv library (which we are using in this project)
+top-left corner is mapped to `(0,0)`. This may cause subtle effects if you are
+not careful when passing values of location manually.  See issue #1 for
+discussion. I got these values from program `gimp`.
 
 ```bash
 ./plotdigitizer.py -i ./figures/trimmed.png -p 0,0 -p 20,0 -p 0,1 \
@@ -68,7 +69,3 @@ Currently this script has following limitations:
 
 You might be interested in more versatile
 [WebPlotDigitizer](https://automeris.io/WebPlotDigitizer/) by Ankit Rohatagi.
-
-# Development
-
-If you enhance the script, feel free to send a PR.
