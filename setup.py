@@ -7,14 +7,14 @@ with open("README.md") as f:
 
 classifiers = [ 'Development Status :: 4 - Beta',
     'Intended Audience :: Developers',
-    'License :: OSI Approved :: MIT License',
+    'License :: OSI Approved :: GPLv3',
     'Operating System :: OS Independent',
-    'Programming Language :: Python3',
+    'Programming Language :: Python',
     ]
 
 setup(
     name = "PlotDigitizer",
-    version = "0.0.5",
+    version = "0.1.0",
     description = "Digitize plots and extract trajectories.",
     long_description = readme,
     long_description_content_type = 'text/markdown',
