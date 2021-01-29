@@ -5,13 +5,6 @@ from setuptools import setup
 with open("README.md") as f:
     readme = f.read()
 
-classifiers = [ 'Development Status :: 4 - Beta',
-    'Intended Audience :: Developers',
-    'License :: OSI Approved :: GPLv3',
-    'Operating System :: OS Independent',
-    'Programming Language :: Python',
-    ]
-
 setup(
     name = "PlotDigitizer",
     version = "0.1.0",
@@ -25,6 +18,5 @@ setup(
     author_email = "dilawar.s.rajput@gmail.com",
     url = "http://github.com/dilawar/PlotDigitizer",
     license='GPLv3',
-    classifiers=classifiers,
     entry_points = { 'console_scripts' : 'plotdigitizer=PlotDigitizer.plotdigitizer:main' }
 )
