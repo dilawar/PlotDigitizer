@@ -148,7 +148,7 @@ def find_trajectory(img, pixel, T, error=0):
 
     # Find all pixels which belongs to a trajectory.
     o = 6
-    Y, X = np.where((img > pixel - o//2) & (img < pixel + o//2))
+    Y, X = np.where((img > pixel - o // 2) & (img < pixel + o // 2))
     traj = defaultdict(list)
     for x, y in zip(X, Y):
         traj[x].append(y)
@@ -244,7 +244,7 @@ def process(img):
     T = transform_axis(img, extra=args_.erase_near_axis)
 
     # extract the plot that has color which is farthest from the background.
-    trajcolor = params_['timeseries_colors'][0]
+    trajcolor = params_["timeseries_colors"][0]
     traj, img = find_trajectory(img, trajcolor, T)
     save_img_in_cache(img, f"{args_.INPUT.name}.final.png")
     return traj
@@ -267,7 +267,7 @@ def run(args):
     img_ = (255 * (img_ / img_.max())).astype(np.uint8)
 
     assert img_.max() <= 255
-    assert(img_.min() < img_.mean() < img_.max()), "Could not read meaningful data"
+    assert img_.min() < img_.mean() < img_.max(), "Could not read meaningful data"
 
     save_img_in_cache(img_, args_.INPUT.name)
 
@@ -313,23 +313,12 @@ def main():
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument("INPUT", type=Path, help="Input image file.")
     parser.add_argument(
-        "--type", "-t", required=False, default="line", help="Type of image (xy line)"
-    )
-    parser.add_argument(
-        "--num-axis",
-        "-n",
-        required=False,
-        default=2,
-        help="Number of axis (currently only 2 axis are supported)",
-    )
-    parser.add_argument(
         "--data-point",
         "-p",
         required=True,
         action="append",
-        help="Please specify a datapoint. You have to manually click them on "
-        " the figure. At least 2 points are required. 3 are recommended. e.g. "
-        "   -p 0,0 -p 10,0 -p 0,1 "
+        help="Datapoints (min 3 required). You have to click on them later."
+        " At least 3 points are recommended. e.g -p 0,0 -p 10,0 -p 0,1 "
         "Make sure that point are comma separated without any space.",
     )
     parser.add_argument(
@@ -338,38 +327,10 @@ def main():
         required=False,
         default=[],
         action="append",
-        help="Location of a data-point on figure in pixels (integer)."
+        help="Location of a points on figure in pixels (integer)."
         " These values should appear in the same order as -p option."
         " If not given, you will be asked to click on the figure.",
     )
-
-    parser.add_argument(
-        "--background",
-        "-b",
-        required=False,
-        default=255,
-        type=int,
-        help="Background color (grayscale: 0=black, 255=white)",
-    )
-
-    parser.add_argument(
-        "--foreground",
-        "-f",
-        required=False,
-        default=0,
-        type=int,
-        help="Datapoint color (grayscale: 0=black, 255=white)",
-    )
-
-    parser.add_argument(
-        "--erase_near_axis",
-        "-e",
-        required=False,
-        default=1,
-        type=int,
-        help="Number of rows and columns to ignore near both axis.",
-    )
-
     parser.add_argument(
         "--plot",
         default=None,
@@ -393,7 +354,6 @@ def main():
     )
     parser.add_argument(
         "--debug",
-        "-d",
         required=False,
         action="store_true",
         help="Enable debug logger",
@@ -401,5 +361,6 @@ def main():
     args = parser.parse_args()
     run(args)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
