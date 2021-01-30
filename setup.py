@@ -13,7 +13,7 @@ setup(
     long_description_content_type = 'text/markdown',
     packages = [ 'PlotDigitizer' ],
     package_dir = { 'PlotDigitizer' : '.' },
-    install_requires = [ 'numpy' ],
+    install_requires = [ 'numpy', 'loguru' ],
     author = "Dilawar Singh",
     author_email = "dilawar.s.rajput@gmail.com",
     url = "http://github.com/dilawar/PlotDigitizer",
