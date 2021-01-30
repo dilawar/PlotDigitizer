@@ -34,7 +34,7 @@ test: test_install
 	poetry run pytest
 
 upload:
-	poetry build
+	poetry build && poetry publish
 
 install:
 	python3 -m pip install .
