@@ -17,7 +17,7 @@ import tempfile
 from collections import defaultdict
 from loguru import logger
 
-windowName_ = "PlotDigitizer"
+WindowName_ = "PlotDigitizer"
 ix_, iy_ = 0, 0
 params_: T.Dict[str, T.Any] = {}
 args_ = None
@@ -89,17 +89,17 @@ def click_points(event, x, y, flags, params):
 
 
 def show_frame(img, msg="MSG: "):
-    global windowName_
+    global WindowName_
     msgImg = np.zeros(shape=(50, img.shape[1]))
     cv2.putText(msgImg, msg, (1, 40), 0, 0.5, 255)
-    newImg = np.vstack((img, msgImg))
-    cv2.imshow(windowName_, newImg)
+    newImg = np.vstack((img, msgImg.astype(np.uint8)))
+    cv2.imshow(WindowName_, newImg)
 
 
 def ask_user_to_locate_points(points, img):
     global coords_
-    cv2.namedWindow(windowName_)
-    cv2.setMouseCallback(windowName_, click_points)
+    cv2.namedWindow(WindowName_)
+    cv2.setMouseCallback(WindowName_, click_points)
     while len(coords_) < len(points):
         i = len(coords_)
         p = points[i]
@@ -141,12 +141,13 @@ def transform_axis(img, extra=1):
 
 
 def find_trajectory(img, pixel, T, error=0):
+    logger.info(f"Extracting trajectory for color {pixel}")
     res = []
     r, c = img.shape
     new = np.zeros_like(img)
 
     # Find all pixels which belongs to a trajectory.
-    o = 10
+    o = 6
     Y, X = np.where((img > pixel - o//2) & (img < pixel + o//2))
     traj = defaultdict(list)
     for x, y in zip(X, Y):
@@ -219,7 +220,7 @@ def _find_trajectory_colors(img, plot: bool = False) -> T.Tuple[int, T.List[int]
 
     # foreground are peaks which are away from foreground. If background is
     # white, search from the trajectories from the black.
-    trajcolors = [x for x, c in zip(hs, bs) if c > 0 and x / bgcolor < 0.8]
+    trajcolors = [int(b) for h, b in hist if h > 0 and b / bgcolor < 0.5]
     return bgcolor, trajcolors
 
 
@@ -243,7 +244,8 @@ def process(img):
     T = transform_axis(img, extra=args_.erase_near_axis)
 
     # extract the plot that has color which is farthest from the background.
-    traj, img = find_trajectory(img, int(params_["timeseries_colors"][0]), T)
+    trajcolor = params_['timeseries_colors'][0]
+    traj, img = find_trajectory(img, trajcolor, T)
     save_img_in_cache(img, f"{args_.INPUT.name}.final.png")
     return traj
 
@@ -259,7 +261,13 @@ def run(args):
     infile = Path(args.INPUT)
     assert infile.exists(), f"{infile} does not exists."
     logger.info("Got file: %s" % infile)
-    img_ = cv2.imread(str(infile), cv2.IMREAD_GRAYSCALE)
+
+    img_ = cv2.imread(str(infile), 0)
+    img_ = img_ - img_.min()
+    img_ = (255 * (img_ / img_.max())).astype(np.uint8)
+
+    assert img_.max() <= 255
+    assert(img_.min() < img_.mean() < img_.max()), "Could not read meaningful data"
 
     save_img_in_cache(img_, args_.INPUT.name)
 

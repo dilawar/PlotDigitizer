@@ -1,6 +1,6 @@
 PY = python3
 
-all : test3 test2 test1 
+all : test4 test3 test2 test1 
 
 test1: ./plotdigitizer.py
 	$(PY) $< ./figures/trimmed.png -p 0,0 -p 20,0 -p 0,1 \
@@ -18,6 +18,13 @@ test3 : ./plotdigitizer.py
 		-l 165,160 -l 599,160 -l 85,60 \
 		--plot figures/graphs_1.result.png \
 		--preprocess \
+		--debug
+
+test4 : ./plotdigitizer.py
+	$(PY) ./plotdigitizer.py figures/ECGImage.png \
+		-p 1,0 -p 5,0 -p 0,1 -l 290,337 \
+		-l 1306,338 -l 106,83 \
+		--plot figures/ECGImage.result.png \
 		--debug
 
 
