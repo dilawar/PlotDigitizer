@@ -1,36 +1,29 @@
 [![Build Status](https://travis-ci.org/dilawar/PlotDigitizer.svg?branch=master)](https://travis-ci.org/dilawar/PlotDigitizer) [![PyPI version](https://badge.fury.io/py/PlotDigitizer.svg)](https://badge.fury.io/py/PlotDigitizer) 
 
-# PlotDigitizer
-
-A python3 script to digitize plot.
+A python3 script to digitize old plot. 
 
 ## Usage
 
-1. Remove all the text from the image. Only axis and plot should be left.
+### Remove all text from the image, leave only axis and the plot.
 
-For example, following image is from MacFadden and Koshland, PNAS 1990. 
-![](./figures/original.png)
+For example, following image is from MacFadden and Koshland, PNAS 1990 after
+trimming. One can also remove top and right axis.
 
-It should be trimmed. Remove the top border. You can use `gimp`
-or `imagemagick` or `gthumb` or any other tool for cropping.
+![Trimmed image](./figures/trimmed.png)
 
-![](./figures/trimmed.png)
-
-2. Then we run the script like this.
+### Run the script
 
 ```
-./plotdigitizer.py -i ./figures/trimmed.png -p 0,0 -p 10,0 -p 0,1
+python3 plotdigitizer.py ./figures/trimmed.png -p 0,0 -p 10,0 -p 0,1
 ```
 
-Option `-i` accepts the input file. 
+We need three points (`-p` option) to map the coordinates onto the images.  In
+the example above, we have given three coordinates: `0,0` (where x-axis and
+y-axis intesect) , `20,0` (a point on x-axis) and `0,1` (a point on y-axis). To
+map thse points on the image, you will be asked to click on these points on the
+image. __Make sure to click in the same order.__
 
-We need three `-p` (points) to map the coordinates onto the pixels of the
-image. In the example above, we have given three coordinates: `0,0` (where
-x-axis and y-axis intesect) , `20,0` (a point on x-axis) and `0,1` (a point on
-y-axis). To map thse points on the pixels, we are going to click on the image
-to locate these coordinates later. __Make sure to click in the same order.__
-
-3. The data-points will be dumped to a csv file. If `--plot output.png` is
+The data-points will be dumped to a csv file. If `--plot output.png` is
 passed, it will also plot the computed data-points to `output.png`. This
 requires `matplotlib`.
 
@@ -40,11 +33,9 @@ Notice the errors near the boxes; since we have not trimmed them.
 
 ### Mapping coordinates at command line (batch mode)
 
-There is subtle difference here. Most plots use bottom left corner of the image
-as `(0,0)` while the opencv library (which we are using in this project)
-top-left corner is mapped to `(0,0)`. This may cause subtle effects if you are
-not careful when passing values of location manually.  See issue #1 for
-discussion. I got these values from program `gimp`.
+You can also pass the location of points on the command prompt. This feature
+allows this script to run in batch mode without any need for the user to click
+on the image.
 
 ```bash
 ./plotdigitizer.py -i ./figures/trimmed.png -p 0,0 -p 20,0 -p 0,1 \
@@ -56,7 +47,7 @@ discussion. I got these values from program `gimp`.
 Install Python bindings of `opencv` manually. On ubuntu box, it is available in
 official repositories ie., `$ sudo apt install python3-opencv`. You can also
 use the Python wheel available here https://pypi.org/project/opencv-python/
-e.g. `$ pip install opencv-python --user`.
+e.g. `python3 -m pip install opencv-python --user`.
 
 ## Limitations
 
@@ -67,5 +58,29 @@ Currently this script has following limitations:
 - Only b/w images are supported for now. Color images will be converted to grayscale upon reading.
 - One image should have only one trajectory.
 
-You might be interested in more versatile
-[WebPlotDigitizer](https://automeris.io/WebPlotDigitizer/) by Ankit Rohatagi.
+# Examples
+
+![](./figures/graphs_1.png)
+
+```bash
+python3 ./plotdigitizer.py figures/graphs_1.png \
+		-p 1,0 -p 6,0 -p 0,3 \
+		-l 165,160 -l 599,160 -l 85,60 \
+		--plot figures/graphs_1.result.png \
+		--preprocess
+```
+
+![](./figures/graphs_1.result.png)
+
+
+## Related projects by others
+
+1.  [WebPlotDigitizer](https://automeris.io/WebPlotDigitizer/) by Ankit
+Rohatagi is very versatile.
+
+```
+
+## Related projects by others
+
+1.  [WebPlotDigitizer](https://automeris.io/WebPlotDigitizer/) by Ankit
+Rohatagi is very versatile.
