@@ -305,7 +305,7 @@ def run(args):
     logger.info("Wrote trajectory to %s" % outfile)
 
 
-if __name__ == "__main__":
+def main():
     # Argument parser.
     import argparse
 
@@ -400,3 +400,6 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     run(args)
+
+if __name__ == '__main__':
+    main()
