@@ -30,6 +30,8 @@ test4 : test_install
 		--plot figures/ECGImage.result.png \
 		--debug
 
+test: test_install
+	poetry run pytest
 
 upload:
 	poetry build
