@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/dilawar/PlotDigitizer.svg?branch=master)](https://travis-ci.org/dilawar/PlotDigitizer) [![PyPI version](https://badge.fury.io/py/PlotDigitizer.svg)](https://badge.fury.io/py/PlotDigitizer) 
+![Python application](https://github.com/dilawar/PlotDigitizer/workflows/Python%20application/badge.svg)[![PyPI version](https://badge.fury.io/py/PlotDigitizer.svg)](https://badge.fury.io/py/PlotDigitizer) 
 
 A Python3 utility to digitize plots. 
 
