@@ -127,7 +127,7 @@ def compute_scaling_offset(p, P):
     return ((sX, sY), (offX, offY))
 
 
-def transform_axis(img, extra=1):
+def transform_axis(img, erase_near_axis: int = 1):
     # extra: extra rows and cols to erase. Help in containing error near axis.
     # compute the transformation between old and new axis.
     T = compute_scaling_offset(points_, coords_)
@@ -135,8 +135,8 @@ def transform_axis(img, extra=1):
     # x-axis and y-axis chopping can be computed by offset.
     offX, offY = T[1]
     offCols, offRows = int(round(offX)), int(round(offY))
-    img[r - offRows - extra :, :] = params_["background"]
-    img[:, : offCols + extra] = params_["background"]
+    img[r - offRows - erase_near_axis :, :] = params_["background"]
+    img[:, : offCols + erase_near_axis] = params_["background"]
     return T
 
 
@@ -241,7 +241,7 @@ def process(img):
     global params_
     global args_
     params_ = compute_foregrond_background_stats(img)
-    T = transform_axis(img, extra=args_.erase_near_axis)
+    T = transform_axis(img, erase_near_axis=1)
 
     # extract the plot that has color which is farthest from the background.
     trajcolor = params_["timeseries_colors"][0]
