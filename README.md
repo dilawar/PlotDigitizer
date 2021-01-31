@@ -42,15 +42,40 @@ saved to `output.png`. This requires `matplotlib`.
 
 Notice the errors near the boxes; since we have not trimmed them.
 
-### Using in batch mode
+## Using in batch mode
 
-You can also pass the location of points in the image at the command prompt.
-This allows it to run in the batch mode without any need for the user to click
-on the image.
+You can pass the coordinates of points in the image at the command prompt.
+This allows to run in the batch mode without any need for the user to click on
+the image.
 
 ```bash
 plotdigitizer ./figures/trimmed.png -p 0,0 -p 20,0 -p 0,1 -l 22,295 -l 142,295 -l 22,215 --plot output.png
 ```
+
+### How to find coordinates for these points
+
+In the example above, point `0,0` is mapped to coordinate `22,295` i.e., the
+data point `0,0` is on the 22nd row and 295th column _assuming that bottom left
+of the image is first row, first column `(0,0)`. We have provide a utility
+`plotdigitizer-locate` (script `plotdigitizer/locate.py`) which you can use on
+the image to find the coordinates.
+
+If you have installed the utility using `pip install`
+
+```bash
+$ plotdigitizer-locate figures/trimmed.png     
+```
+
+or, from the source,
+
+```bash
+$ python3 plotdigitizer/locate.py figures/trimmed.png
+```
+
+This open a windows, you can click on the desired point and its coordinate will
+be written on the image itself. Note them down.
+
+![](./figures/trimmed_locate.png)
 
 
 # Examples
