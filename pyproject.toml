@@ -20,6 +20,7 @@ pytest = "^6.2.2"
 
 [tool.poetry.scripts]
 plotdigitizer = 'plotdigitizer.plotdigitizer:main'
+plotdigitizer-locate = 'plotdigitizer.locate:main'
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
