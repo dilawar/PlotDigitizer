@@ -2,6 +2,15 @@
 
 A Python3 utility to digitize plots. 
 
+It shines when you want to extract data from similar plots such as EEG,
+ECG recordings etc. 
+
+Feel free to contact for commercial work which may require optimizing this pipeline 
+for your use case. Please send a sample plot.
+
+For one time use, you may prefer [WebPlotDigitizer](https://automeris.io/WebPlotDigitizer/) by Ankit
+Rohatagi which is very use friendly.
+
 ## Installation
 
 ```
@@ -9,9 +18,9 @@ $ python3 -m pip install plotdigitizer
 $ plotdigitizer --help
 ```
 
-## Usage
+## Preparing image
 
-First, remove all text from the image, leave only axis and the plot. I use
+Crop the image such that most of the text (if any) is removed. I use
 `gthumb` utility. You can also use imagemagick or gimp.
 
 Following image is from MacFadden and Koshland, PNAS 1990 after trimming. One
@@ -25,14 +34,15 @@ __Run the utility__
 plotdigitizer ./figures/trimmed.png -p 0,0 -p 10,0 -p 0,1
 ```
 
-We need three points (`-p` option) to map axes onto the images.  In the example
+We need at least three points (`-p` option) to map axes onto the images.  In the example
 above, these are `0,0` (where x-axis and y-axis intesect) , `20,0` (a point on
 x-axis) and `0,1` (a point on y-axis). To map these points on the image, you
 will be asked to click on these points on the image. _Make sure to click in
 the same order and click on the points as precisely as you could. Any error in
-this step will propagate._
+this step will propagate._ If you don't have `0,0` in your image, you have to provide 
+4 points: 2 on x-axis and 2 on y-axis.
 
-The data-points will be dumped to a csv file e.g., __`--output
+The data-points will be dumped to a csv file specified by __`--output
 /path/to/file.csv`__. 
 
 If `--plot output.png` is passed, a plot of the extracted data-points will be
@@ -52,13 +62,13 @@ the image.
 plotdigitizer ./figures/trimmed.png -p 0,0 -p 20,0 -p 0,1 -l 22,295 -l 142,295 -l 22,215 --plot output.png
 ```
 
-### How to find coordinates for these points
+### How to find coordinates of axes points
 
 In the example above, point `0,0` is mapped to coordinate `22,295` i.e., the
-data point `0,0` is on the 22nd row and 295th column _assuming that bottom left
-of the image is first row, first column `(0,0)`. We have provide a utility
-`plotdigitizer-locate` (script `plotdigitizer/locate.py`) which you can use on
-the image to find the coordinates.
+data point `0,0` is on the 22nd row and 295th column of the image (_assuming that bottom left
+of the image is first row, first column `(0,0)`_). I have included an utility
+`plotdigitizer-locate` (script `plotdigitizer/locate.py`) which you can use to
+find the coordinates.
 
 If you have installed the utility using `pip install`
 
@@ -72,7 +82,7 @@ or, from the source,
 $ python3 plotdigitizer/locate.py figures/trimmed.png
 ```
 
-This open a windows, you can click on the desired point and its coordinate will
+This command will open a window, you can now click on the desired point. Its coordinate will
 be written on the image itself. Note them down.
 
 ![](./figures/trimmed_locate.png)
@@ -112,6 +122,10 @@ Currently this script has following limitations:
   I've not tested it.
 - Only b/w images are supported for now. Color images will be converted to grayscale upon reading.
 - One image should have only one trajectory.
+
+## Need help
+
+Open an issue and please attach the sample plot.
 
 ## Related projects by others
 
