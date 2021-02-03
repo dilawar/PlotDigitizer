@@ -2,8 +2,8 @@
 
 A Python3 utility to digitize plots. 
 
-It shines when you want to extract data from similar plots such as EEG,
-ECG recordings etc. 
+It shines when you want to extract data in batch mode from many similar plots such as EEG,
+ECG recordings etc.
 
 Feel free to contact for commercial work which may require optimizing this pipeline 
 for your use case. Please send a sample plot.
