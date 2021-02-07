@@ -2,14 +2,14 @@
 
 A Python3 utility to digitize plots. 
 
-It shines when you want to extract data in batch mode from many similar plots such as EEG,
-ECG recordings etc.
+This utility is meant for use cases where similar plots needs to be digitized in batch mode; such as EEG,
+ECG recordings.
 
-Feel free to contact for commercial work which may require optimizing this pipeline 
+Feel free to contact for commercial work that may require optimizing this pipeline 
 for your use case. Please send a sample plot.
 
-For one time use, you may prefer [WebPlotDigitizer](https://automeris.io/WebPlotDigitizer/) by Ankit
-Rohatagi which is very use friendly.
+For one time use case, you may prefer [WebPlotDigitizer](https://automeris.io/WebPlotDigitizer/) by Ankit
+Rohatagi which is very user friendly.
 
 ## Installation
 
