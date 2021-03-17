@@ -1,15 +1,15 @@
 ![Python application](https://github.com/dilawar/PlotDigitizer/workflows/Python%20application/badge.svg) [![PyPI version](https://badge.fury.io/py/plotdigitizer.svg)](https://badge.fury.io/py/plotdigitizer) [![DOI](https://zenodo.org/badge/140683649.svg)](https://zenodo.org/badge/latestdoi/140683649)
 
-A Python3 utility to digitize plots. 
+A Python3 utility to digitize plots in batch mode. 
 
-This utility is meant for use cases where similar plots needs to be digitized in batch mode; such as EEG,
+This utility is useful when you have a lot of similar plots that needs to be digitized such as EEG,
 ECG recordings.
 
-Feel free to contact for commercial work that may require optimizing this pipeline 
+Feel free to contact me for commercial work that may require optimizing this pipeline 
 for your use case. Please send a sample plot.
 
-For one time use case, you may prefer [WebPlotDigitizer](https://automeris.io/WebPlotDigitizer/) by Ankit
-Rohatagi which is very user friendly.
+For occasional use, have a look at [WebPlotDigitizer](https://automeris.io/WebPlotDigitizer/) by Ankit
+Rohatagi.
 
 ## Installation
 
@@ -20,21 +20,21 @@ $ plotdigitizer --help
 
 ## Preparing image
 
-Crop the image such that most of the text (if any) is removed. I use
-`gthumb` utility. You can also use imagemagick or gimp.
+Crop the image and leave only axis and trajectories. I use
+`gthumb` utility on Linux. You can also use imagemagick or gimp.
 
 Following image is from MacFadden and Koshland, PNAS 1990 after trimming. One
 can also remove top and right axis.
 
 ![Trimmed image](./figures/trimmed.png)
 
-__Run the utility__
+__Run__
 
-```
+```bash
 plotdigitizer ./figures/trimmed.png -p 0,0 -p 10,0 -p 0,1
 ```
 
-We need at least three points (`-p` option) to map axes onto the images.  In the example
+We need at least three points (`-p` option) to map axes onto the image.  In the example
 above, these are `0,0` (where x-axis and y-axis intesect) , `20,0` (a point on
 x-axis) and `0,1` (a point on y-axis). To map these points on the image, you
 will be asked to click on these points on the image. _Make sure to click in
@@ -46,11 +46,11 @@ The data-points will be dumped to a csv file specified by __`--output
 /path/to/file.csv`__. 
 
 If `--plot output.png` is passed, a plot of the extracted data-points will be
-saved to `output.png`. This requires `matplotlib`.
+saved to `output.png`. This requires `matplotlib`. Very useful when debugging/testing.
 
 ![](./figures/traj.png)
 
-Notice the errors near the boxes; since we have not trimmed them.
+Notice the error near the right y-axis.
 
 ## Using in batch mode
 
@@ -68,9 +68,8 @@ In the example above, point `0,0` is mapped to coordinate `22,295` i.e., the
 data point `0,0` is on the 22nd row and 295th column of the image (_assuming that bottom left
 of the image is first row, first column `(0,0)`_). I have included an utility
 `plotdigitizer-locate` (script `plotdigitizer/locate.py`) which you can use to
-find the coordinates.
+find the coordinates of points.
 
-If you have installed the utility using `pip install`
 
 ```bash
 $ plotdigitizer-locate figures/trimmed.png     
@@ -82,8 +81,8 @@ or, from the source,
 $ python3 plotdigitizer/locate.py figures/trimmed.png
 ```
 
-This command will open a window, you can now click on the desired point. Its coordinate will
-be written on the image itself. Note them down.
+This command opens the image in a simple window. You can click on a point and 
+its coordinate will be written on the image itself. Note them down.
 
 ![](./figures/trimmed_locate.png)
 
