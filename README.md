@@ -31,7 +31,7 @@ can also remove top and right axis.
 __Run__
 
 ```bash
-plotdigitizer ./figures/trimmed.png -p 0,0 -p 10,0 -p 0,1
+plotdigitizer ./figures/trimmed.png -p 0,0 -p 20,0 -p 0,1
 ```
 
 We need at least three points (`-p` option) to map axes onto the image.  In the example
