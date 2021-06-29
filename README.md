@@ -1,11 +1,11 @@
 ![Python application](https://github.com/dilawar/PlotDigitizer/workflows/Python%20application/badge.svg) [![PyPI version](https://badge.fury.io/py/plotdigitizer.svg)](https://badge.fury.io/py/plotdigitizer) [![DOI](https://zenodo.org/badge/140683649.svg)](https://zenodo.org/badge/latestdoi/140683649)
 
-A Python3 utility to digitize plots in batch mode. 
+A Python3 utility to digitize plots in batch mode.
 
 This utility is useful when you have a lot of similar plots that needs to be digitized such as EEG,
 ECG recordings.
 
-Feel free to contact me for commercial work that may require optimizing this pipeline 
+Feel free to contact me for commercial work that may require optimizing this pipeline
 for your use case. Please send a sample plot.
 
 For occasional use, have a look at [WebPlotDigitizer](https://automeris.io/WebPlotDigitizer/) by Ankit
@@ -14,7 +14,7 @@ Rohatagi.
 ## Installation
 
 ```
-$ python3 -m pip install plotdigitizer 
+$ python3 -m pip install plotdigitizer
 $ plotdigitizer --help
 ```
 
@@ -39,11 +39,11 @@ above, these are `0,0` (where x-axis and y-axis intesect) , `20,0` (a point on
 x-axis) and `0,1` (a point on y-axis). To map these points on the image, you
 will be asked to click on these points on the image. _Make sure to click in
 the same order and click on the points as precisely as you could. Any error in
-this step will propagate._ If you don't have `0,0` in your image, you have to provide 
+this step will propagate._ If you don't have `0,0` in your image, you have to provide
 4 points: 2 on x-axis and 2 on y-axis.
 
 The data-points will be dumped to a csv file specified by __`--output
-/path/to/file.csv`__. 
+/path/to/file.csv`__.
 
 If `--plot output.png` is passed, a plot of the extracted data-points will be
 saved to `output.png`. This requires `matplotlib`. Very useful when debugging/testing.
@@ -72,7 +72,7 @@ find the coordinates of points.
 
 
 ```bash
-$ plotdigitizer-locate figures/trimmed.png     
+$ plotdigitizer-locate figures/trimmed.png
 ```
 
 or, from the source,
@@ -81,7 +81,7 @@ or, from the source,
 $ python3 plotdigitizer/locate.py figures/trimmed.png
 ```
 
-This command opens the image in a simple window. You can click on a point and 
+This command opens the image in a simple window. You can click on a point and
 its coordinate will be written on the image itself. Note them down.
 
 ![](./figures/trimmed_locate.png)
@@ -130,3 +130,10 @@ Open an issue and please attach the sample plot.
 
 1.  [WebPlotDigitizer](https://automeris.io/WebPlotDigitizer/) by Ankit
 Rohatagi is very versatile.
+
+
+## Notes
+
+- grapvhiz version 2.47.2 is broken for some xml files. See
+<https://forum.graphviz.org/t/assert-sz-2-in-convertsptoroute/689>. Please use a
+different version.
