@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 __author__ = "Dilawar Singh"
 __copyright__ = "Copyright 2017-, Dilawar Singh"
 __maintainer__ = "Dilawar Singh"
@@ -9,15 +6,22 @@ __status__ = "Development"
 
 import sys
 import typing as T
-import numpy as np
-import math
+from collections import defaultdict
+import tempfile
 import hashlib
 from pathlib import Path
-import cv2 as cv
-import tempfile
-from collections import defaultdict
 
-from loguru import logger
+import cv2 as cv
+import numpy as np
+import numpy.polynomial.polynomial as poly
+
+import plotdigitizer.grid as grid
+
+import logging
+
+logging.basicConfig(level=logging.INFO)
+
+logger = logging.getLogger(__name__)
 
 WindowName_ = "PlotDigitizer"
 ix_, iy_ = 0, 0
@@ -124,8 +128,9 @@ def compute_scaling_offset(p, P):
     # Currently only linear maps and only 2D.
     px, py = zip(*p)
     Px, Py = zip(*P)
-    sX, offX = np.polyfit(px, Px, 1)
-    sY, offY = np.polyfit(py, Py, 1)
+    sX, offX = poly.polyfit(px, Px, 1)
+    sY, offY = poly.polyfit(py, Py, 1)
+    logger.info(f"{px=} -> {Px=}, {py=} -> {Py=} | {sX=} {offX=}, {sY=} {offY=}")
     return ((sX, sY), (offX, offY))
 
 
@@ -133,7 +138,7 @@ def transform_axis(img, erase_near_axis: int = 1):
     # extra: extra rows and cols to erase. Help in containing error near axis.
     # compute the transformation between old and new axis.
     T = compute_scaling_offset(points_, coords_)
-    r, c = img.shape
+    r, _ = img.shape
     # x-axis and y-axis chopping can be computed by offset.
     offX, offY = T[1]
     offCols, offRows = int(round(offX)), int(round(offY))
@@ -142,18 +147,29 @@ def transform_axis(img, erase_near_axis: int = 1):
     return T
 
 
+def _valid_px(val: int) -> int:
+    return min(max(0, val), 255)
+
+
 def find_trajectory(img, pixel, T, error=0):
     logger.info(f"Extracting trajectory for color {pixel}")
     res = []
-    r, c = img.shape
+    r, _ = img.shape
     new = np.zeros_like(img)
 
     # Find all pixels which belongs to a trajectory.
     o = 6
-    Y, X = np.where((img > pixel - o // 2) & (img < pixel + o // 2))
+    _clower, _cupper = _valid_px(pixel - o // 2), _valid_px(pixel + o // 2)
+    logger.info(f"{_clower=} {_cupper=}")
+
+    logger.info(f"{img.min()=}, {img.max()=}")
+
+    Y, X = np.where((img >= _clower) & (img <= _cupper))
     traj = defaultdict(list)
     for x, y in zip(X, Y):
         traj[x].append(y)
+
+    assert traj, "Empty trajectory"
 
     (sX, sY), (offX, offY) = T
     for k in sorted(traj):
@@ -215,13 +231,11 @@ def _find_trajectory_colors(img, plot: bool = False) -> T.Tuple[int, T.List[int]
     # we assume that bgcolor is close to white.
     if bgcolor < 128:
         logger.error(
-            "I computed that background is 'dark'. I don't work with images "
-            "with dark background. Even if this was a mistake, I've failed."
+            "I computed that background is 'dark' which is unacceptable to me."
         )
         quit(-1)
 
-    # foreground are peaks which are away from foreground. If background is
-    # white, search from the trajectories from the black.
+    # If the background is white, search from the trajectories from the black.
     trajcolors = [int(b) for h, b in hist if h > 0 and b / bgcolor < 0.5]
     return bgcolor, trajcolors
 
@@ -235,49 +249,23 @@ def compute_foregrond_background_stats(img) -> T.Dict[str, T.Any]:
     bgcolor, trajcolors = _find_trajectory_colors(img)
     params["background"] = bgcolor
     params["timeseries_colors"] = trajcolors
-    logger.debug(f" computed parameters: {params}")
+    logger.info(f" computed parameters: {params}")
     return params
 
 
-def process(img):
+def process_image(img):
     global params_
     global args_
     params_ = compute_foregrond_background_stats(img)
+
     T = transform_axis(img, erase_near_axis=1)
+    save_img_in_cache(img, f"{args_.INPUT.name}.transformed_axis.png")
 
     # extract the plot that has color which is farthest from the background.
     trajcolor = params_["timeseries_colors"][0]
     traj, img = find_trajectory(img, trajcolor, T)
     save_img_in_cache(img, f"{args_.INPUT.name}.final.png")
     return traj
-
-
-def remove_horizontal_grid(img):
-    """v: vertical h: horizontal"""
-
-    lines = cv.HoughLines(img, 1, np.pi / 180, 150, None, 0, 0)
-
-    if lines is not None:
-        for i in range(0, len(lines)):
-            logger.info(f'Line {i}')
-            rho = lines[i][0][0]
-            theta = lines[i][0][1]
-            a = math.cos(theta)
-            b = math.sin(theta)
-            x0 = a * rho
-            y0 = b * rho
-            pt1 = (int(x0 + 1000*(-b)), int(y0 + 1000*(a)))
-            pt2 = (int(x0 - 1000*(-b)), int(y0 - 1000*(a)))
-            cv.line(img, pt1, pt2, (0,0,255), 3, cv.LINE_AA)
-    save_img_in_cache(img, "lines.png")
-    return img
-
-
-def remove_grid(img):
-    """Remove grid"""
-    img = remove_horizontal_grid(img)
-    #img = remove_horizontal_grid(img.T).T
-    return img
 
 
 def run(args):
@@ -300,10 +288,6 @@ def run(args):
     assert img_.min() < img_.mean() < img_.max(), "Could not read meaningful data"
 
     save_img_in_cache(img_, args_.INPUT.name)
-
-    if args.has_grid:
-        logger.info("Removing grid")
-        img_ = remove_grid(img_)
 
     points_ = list_to_points(args.data_point)
     coords_ = list_to_points(args.location)
@@ -328,7 +312,11 @@ def run(args):
         img_ = cv.morphologyEx(img_, cv.MORPH_CLOSE, kernel)
         save_img_in_cache(img_, f"{args_.INPUT.name}.close.png")
 
-    traj = process(img_)
+    if args.has_grid:
+        img_ = grid.remove_grid(img_)
+        save_img_in_cache(img_, f"{args_.INPUT.name}.without_grid.png")
+
+    traj = process_image(img_)
 
     if args_.plot is not None:
         plot_traj(traj, args_.plot)

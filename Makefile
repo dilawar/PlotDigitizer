@@ -1,8 +1,8 @@
 CMD = poetry run plotdigitizer
 
-all : test4 test3 test2 test1 
+all : test4 test3 test2 test1
 
-test_install : 
+test_install :
 	poetry install
 
 test1: test_install
@@ -13,7 +13,7 @@ test1: test_install
 test2: test_install
 	$(CMD) figures/un2.png -p 0,0 -p 20,0 -p 0,1 \
 	    -l 2,754 -l 897,754 -l 643,583 \
-	    --plot ./figures/un2.result.png 
+	    --plot ./figures/un2.result.png
 
 test3 : test_install
 	$(CMD) figures/graphs_1.png \
@@ -30,6 +30,14 @@ test4 : test_install
 		--plot figures/ECGImage.result.png \
 		--debug
 
+test5 : test_install
+	$(CMD) figures/graph_with_grid.png \
+		-p 100,0 -p 1000,0 -p 100,50 \
+		-l 81,69 -l 1779,68 -l 81,449 \
+		--has-grid \
+		--plot figures/graph_with_grid.result.png
+
+
 test: test_install
 	poetry run pytest
 
@@ -40,4 +48,4 @@ install:
 	python3 -m pip install .
 
 lint:
-	mypy 
+	mypy
