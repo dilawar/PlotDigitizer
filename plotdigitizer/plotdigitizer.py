@@ -10,11 +10,13 @@ __status__ = "Development"
 import sys
 import typing as T
 import numpy as np
+import math
 import hashlib
 from pathlib import Path
-import cv2
+import cv2 as cv
 import tempfile
 from collections import defaultdict
+
 from loguru import logger
 
 WindowName_ = "PlotDigitizer"
@@ -22,7 +24,7 @@ ix_, iy_ = 0, 0
 params_: T.Dict[str, T.Any] = {}
 args_ = None
 
-# NOTE: remember these are cv2 coordinates and not numpy.
+# NOTE: remember these are cv coordinates and not numpy.
 coords_: T.List[T.List[float]] = []
 points_: T.List[T.List[float]] = []
 img_ = None
@@ -42,7 +44,7 @@ def save_img_in_cache(img: np.array, filename: str = ""):
     if not filename:
         filename = f"{data_to_hash(img)}.png"
     outpath = cache() / filename
-    cv2.imwrite(str(outpath), img)
+    cv.imwrite(str(outpath), img)
     logger.debug(f" Saved to {outpath}")
 
 
@@ -63,7 +65,7 @@ def plot_traj(traj, outfile: Path):
         p = list(map(int, c))
         p[1] = img_.shape[0] - p[1]
         csize = img_.shape[0] // 40
-        cv2.circle(img_, tuple(p), csize, 128, -1)
+        cv.circle(img_, tuple(p), csize, 128, -1)
     plt.imshow(img_, interpolation="none", cmap="gray")
     plt.axis(False)
     plt.title("Original")
@@ -83,7 +85,7 @@ def click_points(event, x, y, flags, params):
     global img_
     assert img_ is not None, "No data set"
     # Function to record the clicks.
-    if event == cv2.EVENT_LBUTTONDOWN:
+    if event == cv.EVENT_LBUTTONDOWN:
         logger.info("MOUSE clicked on %s,%s" % (x, y))
         coords_.append((x, y))
 
@@ -91,15 +93,15 @@ def click_points(event, x, y, flags, params):
 def show_frame(img, msg="MSG: "):
     global WindowName_
     msgImg = np.zeros(shape=(50, img.shape[1]))
-    cv2.putText(msgImg, msg, (1, 40), 0, 0.5, 255)
+    cv.putText(msgImg, msg, (1, 40), 0, 0.5, 255)
     newImg = np.vstack((img, msgImg.astype(np.uint8)))
-    cv2.imshow(WindowName_, newImg)
+    cv.imshow(WindowName_, newImg)
 
 
 def ask_user_to_locate_points(points, img):
     global coords_
-    cv2.namedWindow(WindowName_)
-    cv2.setMouseCallback(WindowName_, click_points)
+    cv.namedWindow(WindowName_)
+    cv.setMouseCallback(WindowName_, click_points)
     while len(coords_) < len(points):
         i = len(coords_)
         p = points[i]
@@ -107,7 +109,7 @@ def ask_user_to_locate_points(points, img):
         show_frame(img, "Please click on %s (%d left)" % (p, pLeft))
         if len(coords_) == len(points):
             break
-        key = cv2.waitKey(1) & 0xFF
+        key = cv.waitKey(1) & 0xFF
         if key == "q":
             break
     logger.info("You clicked %s" % coords_)
@@ -173,7 +175,7 @@ def find_trajectory(img, pixel, T, error=0):
         # Still we have multiple candidates for y for each x.
         # We find the center of these points and call it the y for given x.
         y = _find_center(vals)
-        cv2.circle(new, (x, int(y)), 2, 255, -1)
+        cv.circle(new, (x, int(y)), 2, 255, -1)
         x1 = (x - offX) / sX
         y1 = (r - y - offY) / sY
         res.append((x1, y1))
@@ -250,6 +252,34 @@ def process(img):
     return traj
 
 
+def remove_horizontal_grid(img):
+    """v: vertical h: horizontal"""
+
+    lines = cv.HoughLines(img, 1, np.pi / 180, 150, None, 0, 0)
+
+    if lines is not None:
+        for i in range(0, len(lines)):
+            logger.info(f'Line {i}')
+            rho = lines[i][0][0]
+            theta = lines[i][0][1]
+            a = math.cos(theta)
+            b = math.sin(theta)
+            x0 = a * rho
+            y0 = b * rho
+            pt1 = (int(x0 + 1000*(-b)), int(y0 + 1000*(a)))
+            pt2 = (int(x0 - 1000*(-b)), int(y0 - 1000*(a)))
+            cv.line(img, pt1, pt2, (0,0,255), 3, cv.LINE_AA)
+    save_img_in_cache(img, "lines.png")
+    return img
+
+
+def remove_grid(img):
+    """Remove grid"""
+    img = remove_horizontal_grid(img)
+    #img = remove_horizontal_grid(img.T).T
+    return img
+
+
 def run(args):
     global coords_, points_
     global img_, args_
@@ -260,9 +290,9 @@ def run(args):
 
     infile = Path(args.INPUT)
     assert infile.exists(), f"{infile} does not exists."
-    logger.info("Got file: %s" % infile)
+    logger.info(f"Extracting trajectories from {infile}")
 
-    img_ = cv2.imread(str(infile), 0)
+    img_ = cv.imread(str(infile), 0)
     img_ = img_ - img_.min()
     img_ = (255 * (img_ / img_.max())).astype(np.uint8)
 
@@ -271,12 +301,16 @@ def run(args):
 
     save_img_in_cache(img_, args_.INPUT.name)
 
+    if args.has_grid:
+        logger.info("Removing grid")
+        img_ = remove_grid(img_)
+
     points_ = list_to_points(args.data_point)
     coords_ = list_to_points(args.location)
 
     if len(coords_) != len(points_):
         logger.debug(
-            "Either location is not specified or their numbers don't"
+            "Either the location of data-points are not specified or their numbers don't"
             " match with given datapoints. Asking user..."
         )
         ask_user_to_locate_points(points_, img_)
@@ -285,12 +319,13 @@ def run(args):
     # opencv axis to numpy axis.
     yoffset = img_.shape[0]
     coords_ = [(x, yoffset - y) for (x, y) in coords_]
-    logger.info(f" translated to numpy-axis {coords_}")
+    logger.debug(f" translated to numpy-axis {coords_}")
 
     # erosion after dilation (closes gaps)
     if args_.preprocess:
+
         kernel = np.ones((1, 1), np.uint8)
-        img_ = cv2.morphologyEx(img_, cv2.MORPH_CLOSE, kernel)
+        img_ = cv.morphologyEx(img_, cv.MORPH_CLOSE, kernel)
         save_img_in_cache(img_, f"{args_.INPUT.name}.close.png")
 
     traj = process(img_)
@@ -337,7 +372,6 @@ def main():
         required=False,
         help="Plot the final result. Requires matplotlib.",
     )
-
     parser.add_argument(
         "--output",
         "-o",
@@ -357,6 +391,13 @@ def main():
         required=False,
         action="store_true",
         help="Enable debug logger",
+    )
+    parser.add_argument(
+        "--has-grid",
+        required=False,
+        action="store_true",
+        help="My images has grid which is very prominent. When this option is"
+        " set, I'll try to remove the grid.",
     )
     args = parser.parse_args()
     run(args)
