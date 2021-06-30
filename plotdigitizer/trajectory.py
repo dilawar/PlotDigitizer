@@ -60,9 +60,6 @@ def find_trajectory(img: np.ndarray, pixel: int, T):
     # Find all pixels which belongs to a trajectory.
     o = 6
     _clower, _cupper = _valid_px(pixel - o // 2), _valid_px(pixel + o // 2)
-    logger.info(f"{_clower=} {_cupper=}")
-
-    logger.info(f"{img.min()=}, {img.max()=}")
 
     Y, X = np.where((img >= _clower) & (img <= _cupper))
     traj = defaultdict(list)

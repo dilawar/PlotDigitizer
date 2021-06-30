@@ -241,7 +241,7 @@ def run(args):
 
     points_ = list_to_points(args.data_point)
     locations_ = list_to_points(args.location)
-    logger.debug(f"{args.data_point=} → {args.location=}")
+    logger.debug(f"data points {args.data_point} → location on image {args.location}")
 
     if len(locations_) != len(points_):
         logger.warning(
