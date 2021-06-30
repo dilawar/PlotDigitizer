@@ -125,6 +125,8 @@ plotdigitizer  figures/graph_with_grid.png \
 ```
 
 ![original](./figures/graph_with_grid.png)
+_Image credit: Yang yi, Wang_
+
 ![reconstructed](./figures/graph_with_grid.result.png)
 
 __Note that legend was not removed in the original figure and it has screwed up
