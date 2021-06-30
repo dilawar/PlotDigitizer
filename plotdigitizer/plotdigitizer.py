@@ -22,8 +22,9 @@ import plotdigitizer.geometry as geometry
 #
 import sys
 from loguru import logger
+
 logger.remove()
-logger.add(sys.stderr, level='WARNING')
+logger.add(sys.stderr, level="WARNING")
 
 logger.add(
     Path(tempfile.gettempdir()) / "plotdigitizer.log", level="DEBUG", rotation="10MB"
@@ -51,7 +52,7 @@ def data_to_hash(data) -> str:
     return hashlib.sha1(data).hexdigest()
 
 
-def save_img_in_cache(img: np.ndarray, filename: T.Optional[Path] = None):
+def save_img_in_cache(img: np.ndarray, filename: T.Optional[T.Union[Path, str]] = None):
     if filename is None:
         filename = Path(f"{data_to_hash(img)}.png")
     outpath = cache() / filename
@@ -67,10 +68,9 @@ def plot_traj(traj, outfile: Path):
     plt.figure()
     plt.subplot(211)
 
-    # these are numpy coords.
     for p in locations_:
         csize = img_.shape[0] // 40
-        cv.circle(img_, (p.x, img_.shape[0]-p.y), csize, 128, -1)
+        cv.circle(img_, (p.x, img_.shape[0] - p.y), csize, 128, -1)
 
     plt.imshow(img_, interpolation="none", cmap="gray")
     plt.axis(False)
@@ -94,7 +94,8 @@ def click_points(event, x, y, flags, params):
     YROWS = img_.shape[0]
     if event == cv.EVENT_LBUTTONDOWN:
         logger.info(f"You clicked on {(x, YROWS-y)}")
-        locations_.append(geometry.Point(x, YROWS-y))
+        locations_.append(geometry.Point(x, YROWS - y))
+
 
 def show_frame(img, msg="MSG: "):
     global WindowName_
@@ -189,7 +190,7 @@ def _find_trajectory_colors(img, plot: bool = False) -> T.Tuple[int, T.List[int]
     return bgcolor, trajcolors
 
 
-def compute_foregrond_background_stats(img) -> T.Dict[str, T.Any]:
+def compute_foregrond_background_stats(img) -> T.Dict[str, float]:
     """Compute foreground and background color."""
     params: T.Dict[str, T.Any] = {}
     # Compute the histogram. It should be a multimodal histogram. Find peaks
@@ -255,11 +256,11 @@ def run(args):
 
         kernel = np.ones((1, 1), np.uint8)
         img_ = cv.morphologyEx(img_, cv.MORPH_CLOSE, kernel)
-        save_img_in_cache(img_, f"{args_.INPUT.name}.close.png")
+        save_img_in_cache(img_, Path(f"{args_.INPUT.name}.close.png"))
 
     # remove grids.
     img_ = grid.remove_grid(img_)
-    save_img_in_cache(img_, f"{args_.INPUT.name}.without_grid.png")
+    save_img_in_cache(img_, Path(f"{args_.INPUT.name}.without_grid.png"))
 
     traj = process_image(img_)
 
