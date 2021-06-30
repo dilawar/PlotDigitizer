@@ -16,6 +16,7 @@ import numpy.polynomial.polynomial as poly
 
 import plotdigitizer.grid as grid
 import plotdigitizer.trajectory as trajectory
+import plotdigitizer.geometry as geometry
 
 # import logging
 # logging.basicConfig(level=logging.INFO)
@@ -33,7 +34,7 @@ params_: T.Dict[str, T.Any] = {}
 args_ = None
 
 # NOTE: remember these are cv coordinates and not numpy.
-coords_: T.List[T.List[float]] = []
+locations_: T.List[T.List[float]] = []
 points_: T.List[T.List[float]] = []
 
 img_: np.ndarray = np.zeros((1, 1))
@@ -58,7 +59,7 @@ def save_img_in_cache(img: np.ndarray, filename: T.Optional[Path] = None):
 
 
 def plot_traj(traj, outfile: Path):
-    global coords_
+    global locations_
     import matplotlib.pyplot as plt
 
     x, y = zip(*traj)
@@ -66,7 +67,7 @@ def plot_traj(traj, outfile: Path):
     plt.subplot(211)
 
     # there are numpy coords.
-    for c in coords_:
+    for c in locations_:
         p = list(map(int, c))
         p[1] = img_.shape[0] - p[1]
         csize = img_.shape[0] // 40
@@ -92,7 +93,7 @@ def click_points(event, x, y, flags, params):
     # Function to record the clicks.
     if event == cv.EVENT_LBUTTONDOWN:
         logger.info("MOUSE clicked on %s,%s" % (x, y))
-        coords_.append((x, y))
+        locations_.append((x, y))
 
 
 def show_frame(img, msg="MSG: "):
@@ -104,20 +105,20 @@ def show_frame(img, msg="MSG: "):
 
 
 def ask_user_to_locate_points(points, img):
-    global coords_
+    global locations_
     cv.namedWindow(WindowName_)
     cv.setMouseCallback(WindowName_, click_points)
-    while len(coords_) < len(points):
-        i = len(coords_)
+    while len(locations_) < len(points):
+        i = len(locations_)
         p = points[i]
-        pLeft = len(points) - len(coords_)
+        pLeft = len(points) - len(locations_)
         show_frame(img, "Please click on %s (%d left)" % (p, pLeft))
-        if len(coords_) == len(points):
+        if len(locations_) == len(points):
             break
         key = cv.waitKey(1) & 0xFF
         if key == "q":
             break
-    logger.info("You clicked %s" % coords_)
+    logger.info("You clicked %s" % locations_)
 
 
 def list_to_points(points) -> T.List[T.List[float]]:
@@ -137,23 +138,20 @@ def compute_scaling_offset(p, P) -> T.List[T.Tuple[float, float]]:
     return [(sX, sY), (offX, offY)]
 
 
-def transform_axis(img, erase_near_axis: int = 1):
+def transform_axis(img, erase_near_axis: int = 2):
     # extra: extra rows and cols to erase. Help in containing error near axis.
     # compute the transformation between old and new axis.
-    T = compute_scaling_offset(points_, coords_)
+    T = compute_scaling_offset(points_, locations_)
 
     # FIXME: This is broken becuase compute_scaling_offset is not the right way
     # to trim the axis. Correct way to to figure out the location of axis and
     # trim from there. Can we make sure that user always click on lower side of
     # axis so I can trim below that?
     ## x-axis and y-axis chopping can be computed by offset.
-    ##r, _ = img.shape
-    ##offX, offY = T[1]
-    ##offCols, offRows = int(round(offX)), int(round(offY))
-    ##logger.info(f"Offsets: {offCols=}, {offRows=}")
-    ##img[r - offRows - erase_near_axis :, :] = params_["background"]
-    ##img[:, : offCols + erase_near_axis] = params_["background"]
-    ##logger.info(f"erase near axis: : {erase_near_axis}")
+    offCols, offRows = geometry.find_origin(locations_)
+    logger.info(f"{locations_=} → origin {offCols=}, {offRows=}")
+    img[:, :offCols+erase_near_axis] = params_["background"]
+    img[offRows-erase_near_axis:, :] = params_["background"]
     logger.debug(f"Tranformation params: {T}")
     return T
 
@@ -242,7 +240,7 @@ def process_image(img):
     global args_
     params_ = compute_foregrond_background_stats(img)
 
-    T = transform_axis(img, erase_near_axis=1)
+    T = transform_axis(img, erase_near_axis=3)
     save_img_in_cache(img, f"{args_.INPUT.name}.transformed_axis.png")
 
     # extract the plot that has color which is farthest from the background.
@@ -253,7 +251,7 @@ def process_image(img):
 
 
 def run(args):
-    global coords_, points_
+    global locations_, points_
     global img_, args_
     args_ = args
 
@@ -273,10 +271,10 @@ def run(args):
     save_img_in_cache(img_, args_.INPUT.name)
 
     points_ = list_to_points(args.data_point)
-    coords_ = list_to_points(args.location)
+    locations_ = list_to_points(args.location)
     logger.debug(f"{args.data_point=} → {args.location=}")
 
-    if len(coords_) != len(points_):
+    if len(locations_) != len(points_):
         logger.warning(
             "Either the location of data-points are not specified or their numbers don't"
             " match with given datapoints. Asking user..."
@@ -286,8 +284,8 @@ def run(args):
     # opencv has (0,0) on top-left while numpy has at bottom left. Converting
     # opencv axis to numpy axis.
     yoffset = img_.shape[0]
-    coords_ = [(x, yoffset - y) for (x, y) in coords_]
-    logger.debug(f" translated to numpy-axis {coords_}")
+    locations_ = [(x, yoffset - y) for (x, y) in locations_]
+    logger.debug(f" translated to numpy-axis {locations_}")
 
     # erosion after dilation (closes gaps)
     if args_.preprocess:
@@ -296,9 +294,9 @@ def run(args):
         img_ = cv.morphologyEx(img_, cv.MORPH_CLOSE, kernel)
         save_img_in_cache(img_, f"{args_.INPUT.name}.close.png")
 
-    if args.has_grid:
-        img_ = grid.remove_grid(img_)
-        save_img_in_cache(img_, f"{args_.INPUT.name}.without_grid.png")
+    # remove grids if found.
+    img_ = grid.remove_grid(img_)
+    save_img_in_cache(img_, f"{args_.INPUT.name}.without_grid.png")
 
     traj = process_image(img_)
 
@@ -363,13 +361,6 @@ def main():
         required=False,
         action="store_true",
         help="Enable debug logger",
-    )
-    parser.add_argument(
-        "--has-grid",
-        required=False,
-        action="store_true",
-        help="My images has grid which is very prominent. When this option is"
-        " set, I'll try to remove the grid.",
     )
     args = parser.parse_args()
     run(args)

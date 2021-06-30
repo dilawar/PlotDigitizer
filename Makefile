@@ -7,12 +7,12 @@ test_install :
 
 test1: test_install
 	$(CMD) figures/trimmed.png -p 0,0 -p 20,0 -p 0,1 \
-	    -l 22,295 -l 142,296 -l 23,215 \
+	    -l 22,26 -l 142,23 -l 23,106 \
 	    --plot ./figures/trimmed.result.png
 
 test2: test_install
 	$(CMD) figures/un2.png -p 0,0 -p 20,0 -p 0,1 \
-	    -l 2,754 -l 897,754 -l 643,583 \
+	    -l 2,12 -l 897,12 -l 2,183 \
 	    --plot ./figures/un2.result.png
 
 test3 : test_install
