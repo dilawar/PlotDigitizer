@@ -127,6 +127,9 @@ plotdigitizer  figures/graph_with_grid.png \
 ![original](./figures/graph_with_grid.png)
 ![reconstructed](./figures/graph_with_grid.result.png)
 
+__Note that legend was not removed in the original figure and it has screwed up
+the detection below it.__
+
 # Limitations
 
 Currently this script has following limitations:
