@@ -11,7 +11,7 @@ TEMP = tempfile.gettempdir()
 
 
 def _save_fig(img, outfile):
-    print(f'Saved to {outfile}')
+    print(f"Saved to {outfile}")
     cv.imwrite(outfile, img)
 
 
@@ -23,31 +23,38 @@ def remove_horizontal_grid_simple(img) -> np.ndarray:
             img[i, :] = img.max()
     return img
 
+
 def heal(orig):
-    kernel = np.ones((3,3), np.uint8)
+    kernel = np.ones((3, 3), np.uint8)
     img = cv.morphologyEx(orig.copy(), cv.MORPH_OPEN, kernel, iterations=2)
     return img
 
 
-def remove_grid(orig) -> np.ndarray:
+def remove_grid(
+    orig, num_iter=3, background_color: int = 255, grid_size: int = 2
+) -> np.ndarray:
     img = orig.copy()
     thres = cv.threshold(img, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU)[1]
     # Remove horizontal lines
-    horizontal_kernel = cv.getStructuringElement(cv.MORPH_RECT, (40,1))
-    remove_horizontal = cv.morphologyEx(thres, cv.MORPH_OPEN, horizontal_kernel, iterations=2)
+    horizontal_kernel = cv.getStructuringElement(cv.MORPH_RECT, (40, 1))
+    remove_horizontal = cv.morphologyEx(
+        thres, cv.MORPH_OPEN, horizontal_kernel, iterations=num_iter
+    )
     cnts = cv.findContours(remove_horizontal, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     cnts = cnts[0] if len(cnts) == 2 else cnts[1]
     for c in cnts:
-        cv.drawContours(img, [c], -1, 255, 2)
+        cv.drawContours(img, [c], -1, background_color, grid_size)
 
     # Remove vertical lines
-    vertical_kernel = cv.getStructuringElement(cv.MORPH_RECT, (1,40))
-    remove_vertical = cv.morphologyEx(thres, cv.MORPH_OPEN, vertical_kernel, iterations=2)
+    vertical_kernel = cv.getStructuringElement(cv.MORPH_RECT, (1, 40))
+    remove_vertical = cv.morphologyEx(
+        thres, cv.MORPH_OPEN, vertical_kernel, iterations=num_iter
+    )
     cnts = cv.findContours(remove_vertical, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     cnts = cnts[0] if len(cnts) == 2 else cnts[1]
     for c in cnts:
-        cv.drawContours(img, [c], -1, 255, 2)
-    return heal(img)
+        cv.drawContours(img, [c], -1, background_color, grid_size)
+    return img
 
 
 def test_remove_grid(imgfile: Path, debug: bool = True):
