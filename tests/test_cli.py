@@ -62,7 +62,7 @@ def test_ecg():
 def test_grid():
     csvfile = _run_cmdline(
         HERE / Path("../figures/graph_with_grid.png"),
-        [(1, 0), (5, 0), (0, 1)],
-        [(81, 69), (1779, 68), (81, 449)],
+        [(200, 0), (1000, 0), (0, 50)],
+        [(269, 69), (1780, 69), (81, 542)],
     )
     _check_csv_file(csvfile)

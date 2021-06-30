@@ -119,8 +119,8 @@ plotdigitizer  figures/ECGImage.png \
 
 ```
 plotdigitizer  figures/graph_with_grid.png \
-		-p 1,0 -p 5,0 -p 0,1 \
-        -l 81,69 -l 1779,68 -l 81,449 \
+		-p 200,0 -p 1000,0 -p 0,50 \
+        -l 269,69 -l 1789,69 -l 82,542 \
 		--plot figures/graph_with_grid.result.png
 ```
 
