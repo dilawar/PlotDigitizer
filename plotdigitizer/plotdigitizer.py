@@ -132,9 +132,6 @@ def compute_scaling_offset(p, P: T.List[geometry.Point]) -> T.List[geometry.Poin
     Px, Py = zip(*P)
     offX, sX = poly.polyfit(px, Px, 1)
     offY, sY = poly.polyfit(py, Py, 1)
-    logger.info(
-        f"{px=} -> {Px=}, {py=} -> {Py=} | {sX=:.2f} {offX=:.2f}, {sY=:.2f} {offY=:.2f}"
-    )
     return [geometry.Point(sX, sY), geometry.Point(offX, offY)]
 
 
@@ -146,7 +143,7 @@ def transform_axis(img, erase_near_axis: int = 0):
     T = compute_scaling_offset(points_, locations_)
     p = geometry.find_origin(locations_)
     offCols, offRows = p.x, p.y
-    logger.info(f"{locations_=} → origin {offCols=}, {offRows=}")
+    logger.info(f"{locations_} → origin {offCols}, {offRows}")
     img[:, : offCols + erase_near_axis] = params_["background"]
     img[-offRows - erase_near_axis :, :] = params_["background"]
     logger.debug(f"Tranformation params: {T}")
