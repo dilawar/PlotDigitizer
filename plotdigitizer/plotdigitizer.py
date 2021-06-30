@@ -33,7 +33,8 @@ logger.add(
 WindowName_ = "PlotDigitizer"
 ix_, iy_ = 0, 0
 params_: T.Dict[str, T.Any] = {}
-args_ = None
+
+args_: T.Optional[T.Any] = None
 
 # NOTE: remember these are cv coordinates and not numpy.
 locations_: T.List[geometry.Point] = []
@@ -127,13 +128,16 @@ def list_to_points(points) -> T.List[geometry.Point]:
     return ps
 
 
-def compute_scaling_offset(p, P: T.List[geometry.Point]) -> T.List[geometry.Point]:
+def axis_transformation(p, P: T.List[geometry.Point]):
+    """Compute m and offset for model Y = m X + offset that is used to transform
+    axis X to Y"""
+
     # Currently only linear maps and only 2D.
     px, py = zip(*p)
     Px, Py = zip(*P)
     offX, sX = poly.polyfit(px, Px, 1)
     offY, sY = poly.polyfit(py, Py, 1)
-    return [geometry.Point(sX, sY), geometry.Point(offX, offY)]
+    return ((sX, sY), (offX, offY))
 
 
 def transform_axis(img, erase_near_axis: int = 0):
@@ -141,7 +145,7 @@ def transform_axis(img, erase_near_axis: int = 0):
     global points_
     # extra: extra rows and cols to erase. Help in containing error near axis.
     # compute the transformation between old and new axis.
-    T = compute_scaling_offset(points_, locations_)
+    T = axis_transformation(points_, locations_)
     p = geometry.find_origin(locations_)
     offCols, offRows = p.x, p.y
     logger.info(f"{locations_} → origin {offCols}, {offRows}")
