@@ -17,11 +17,13 @@ import plotdigitizer.grid as grid
 import plotdigitizer.trajectory as trajectory
 import plotdigitizer.geometry as geometry
 
-# import logging
-# logging.basicConfig(level=logging.INFO)
-# logger = logging.getLogger(__name__)
-
+#
+# Logger
+#
+import sys
 from loguru import logger
+logger.remove()
+logger.add(sys.stderr, level='WARNING')
 
 logger.add(
     Path(tempfile.gettempdir()) / "plotdigitizer.log", level="DEBUG", rotation="10MB"
@@ -68,7 +70,7 @@ def plot_traj(traj, outfile: Path):
     # these are numpy coords.
     for p in locations_:
         csize = img_.shape[0] // 40
-        cv.circle(img_, (p.x, p.y), csize, 128, -1)
+        cv.circle(img_, (p.x, img_.shape[0]-p.y), csize, 128, -1)
 
     plt.imshow(img_, interpolation="none", cmap="gray")
     plt.axis(False)
@@ -89,10 +91,10 @@ def click_points(event, x, y, flags, params):
     global img_
     assert img_ is not None, "No data set"
     # Function to record the clicks.
+    YROWS = img_.shape[0]
     if event == cv.EVENT_LBUTTONDOWN:
-        logger.info("MOUSE clicked on %s,%s" % (x, y))
-        locations_.append(geometry.Point(x, y))
-
+        logger.info(f"You clicked on {(x, YROWS-y)}")
+        locations_.append(geometry.Point(x, YROWS-y))
 
 def show_frame(img, msg="MSG: "):
     global WindowName_

@@ -1,15 +1,15 @@
 ![Python application](https://github.com/dilawar/PlotDigitizer/workflows/Python%20application/badge.svg) [![PyPI version](https://badge.fury.io/py/plotdigitizer.svg)](https://badge.fury.io/py/plotdigitizer) [![DOI](https://zenodo.org/badge/140683649.svg)](https://zenodo.org/badge/latestdoi/140683649)
 
-A Python3 utility to digitize plots in batch mode.
+A Python3 command line utility to digitize plots
 
-This utility is useful when you have a lot of similar plots that needs to be digitized such as EEG,
-ECG recordings.
+This utility is useful when you have a lot of similar plots that needs to be
+digitized such as EEG, ECG recordings. See examples below.
 
-Feel free to contact me for commercial work that may require optimizing this pipeline
-for your use case. Please send a sample plot.
+Feel free to contact me for commercial work that may require optimizing this
+pipeline for your use case. Please send a sample plot.
 
-For occasional use, have a look at [WebPlotDigitizer](https://automeris.io/WebPlotDigitizer/) by Ankit
-Rohatagi.
+For occasional use, have a look at
+[WebPlotDigitizer](https://automeris.io/WebPlotDigitizer/) by Ankit Rohatagi.
 
 ## Installation
 
@@ -59,16 +59,15 @@ This allows to run in the batch mode without any need for the user to click on
 the image.
 
 ```bash
-plotdigitizer ./figures/trimmed.png -p 0,0 -p 20,0 -p 0,1 -l 22,295 -l 142,295 -l 22,215 --plot output.png
+plotdigitizer ./figures/trimmed.png -p 0,0 -p 20,0 -p 0,1 -l 22,26 -l 142,23 -l 22,106 --plot output.png
 ```
 
 ### How to find coordinates of axes points
 
-In the example above, point `0,0` is mapped to coordinate `22,295` i.e., the
-data point `0,0` is on the 22nd row and 295th column of the image (_assuming that bottom left
-of the image is first row, first column `(0,0)`_). I have included an utility
+In the example above, point `0,0` is mapped to coordinate `22,26` assuming that
+lower left corner is the origin of the image. I have included an utility
 `plotdigitizer-locate` (script `plotdigitizer/locate.py`) which you can use to
-find the coordinates of points.
+find the coordinates of a data point.
 
 
 ```bash
@@ -81,8 +80,8 @@ or, from the source,
 $ python3 plotdigitizer/locate.py figures/trimmed.png
 ```
 
-This command opens the image in a simple window. You can click on a point and
-its coordinate will be written on the image itself. Note them down.
+This command opens the image in a separate window. You can click on a data point
+and its coordinate will be written on the image itself. Note them down.
 
 ![](./figures/trimmed_locate.png)
 
@@ -94,7 +93,7 @@ its coordinate will be written on the image itself. Note them down.
 ```bash
 plotdigitizer figures/graphs_1.png \
 		-p 1,0 -p 6,0 -p 0,3 \
-		-l 165,160 -l 599,160 -l 85,60 \
+         -l 165,52 -l 599,51 -l 85,151 \
 		--plot figures/graphs_1.result.png \
 		--preprocess
 ```
@@ -106,8 +105,8 @@ plotdigitizer figures/graphs_1.png \
 
 ```
 plotdigitizer  figures/ECGImage.png \
-		-p 1,0 -p 5,0 -p 0,1 -l 290,337 \
-		-l 1306,338 -l 106,83 \
+		-p 1,0 -p 5,0 -p 0,1 \
+        -l 290,44 -l 1306,43 -l 106,301 \
 		--plot figures/ECGImage.result.png
 ```
 
@@ -117,10 +116,9 @@ plotdigitizer  figures/ECGImage.png \
 
 Currently this script has following limitations:
 
-- Background must not be transparent. It might work with transparent background but
-  I've not tested it.
-- Only b/w images are supported for now. Color images will be converted to grayscale upon reading.
 - One image should have only one trajectory.
+- Grids are handled automatically. Every figure must have axes. Axes must not be
+tilted.
 
 ## Need help
 
@@ -130,10 +128,3 @@ Open an issue and please attach the sample plot.
 
 1.  [WebPlotDigitizer](https://automeris.io/WebPlotDigitizer/) by Ankit
 Rohatagi is very versatile.
-
-
-## Notes
-
-- grapvhiz version 2.47.2 is broken for some xml files. See
-<https://forum.graphviz.org/t/assert-sz-2-in-convertsptoroute/689>. Please use a
-different version.

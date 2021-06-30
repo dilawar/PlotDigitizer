@@ -4,15 +4,15 @@ __email__ = "dilawar@subcom.tech"
 import sys
 import subprocess
 import numpy as np
-from loguru import logger
 from pathlib import Path
+
+import plotdigitizer
 
 HERE = Path(__file__).parent.resolve()
 
 
 def _run_cmdline(infile: Path, points, locations):
-    scriptpath = HERE / ".." / "plotdigitizer" / "plotdigitizer.py"
-    cmd = f"{sys.executable} {scriptpath} {infile} "
+    cmd = f"plotdigitizer {infile} "
     pts = " ".join([f"-p {','.join(map(str,pt))}" for pt in points])
     locs = " ".join([f"-l {','.join(map(str,pt))}" for pt in locations])
     cmd += f"{pts} {locs}"
@@ -32,39 +32,37 @@ def _check_csv_file(csvfile):
     assert y.min() < y.mean() < y.max()
 
 
-def test_examples():
+def test_trimmeed():
     csvfile = _run_cmdline(
         HERE / Path("../figures/trimmed.png"),
         [(0, 0), (20, 0), (0, 1)],
-        [(22, 295), (142, 296), (23, 215)],
+        [(22, 26), (142, 23), (23, 106)],
     )
     _check_csv_file(csvfile)
 
-    csvfile = _run_cmdline(
-        HERE / Path("../figures/un2.png"),
-        [(0, 0), (20, 0), (0, 1)],
-        [(2, 754), (897, 754), (643, 583)],
-    )
-    _check_csv_file(csvfile)
 
+def test_graph1():
     csvfile = _run_cmdline(
         HERE / Path("../figures/graphs_1.png"),
         [(1, 0), (6, 0), (0, 3)],
-        [(165, 160), (599, 160), (85, 60)],
+        [(165, 52), (599, 51), (85, 151)],
     )
     _check_csv_file(csvfile)
 
+
+def test_ecg():
     csvfile = _run_cmdline(
         HERE / Path("../figures/ECGImage.png"),
         [(1, 0), (5, 0), (0, 1)],
-        [(290, 337), (1306, 338), (106, 83)],
+        [(290, 44), (1306, 43), (106, 301)],
     )
     _check_csv_file(csvfile)
 
 
-def main():
-    test_examples()
-
-
-if __name__ == "__main__":
-    main()
+def test_grid():
+    csvfile = _run_cmdline(
+        HERE / Path("../figures/graph_with_grid.png"),
+        [(1, 0), (5, 0), (0, 1)],
+        [(81, 69), (1779, 68), (81, 449)],
+    )
+    _check_csv_file(csvfile)

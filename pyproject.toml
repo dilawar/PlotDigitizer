@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "plotdigitizer"
-version = "0.1.4"
+version = "0.2.0"
 description = "Extract raw data from plots images"
 authors = ["Dilawar Singh <dilawar.s.rajput@gmail.com>"]
 maintainers = ["Dilawar Singh <dilawar.s.rajput@gmail.com>"]
@@ -17,6 +17,7 @@ loguru = "^0.5.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.2"
+matplotlib = "^3.4.2"
 
 [tool.poetry.scripts]
 plotdigitizer = 'plotdigitizer.plotdigitizer:main'
@@ -25,4 +26,3 @@ plotdigitizer-locate = 'plotdigitizer.locate:main'
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
-
