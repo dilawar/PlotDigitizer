@@ -35,7 +35,7 @@ plotdigitizer ./figures/trimmed.png -p 0,0 -p 10,0 -p 0,1
 ```
 
 We need at least three points (`-p` option) to map axes onto the image.  In the example
-above, these are `0,0` (where x-axis and y-axis intesect) , `20,0` (a point on
+above, these are `0,0` (where x-axis and y-axis intesect) , `10,0` (a point on
 x-axis) and `0,1` (a point on y-axis). To map these points on the image, you
 will be asked to click on these points on the image. _Make sure to click in
 the same order and click on the points as precisely as you could. Any error in
@@ -75,7 +75,7 @@ find the coordinates of points.
 $ plotdigitizer-locate figures/trimmed.png
 ```
 
-or, from the source,
+or, by directly using the script:
 
 ```bash
 $ python3 plotdigitizer/locate.py figures/trimmed.png
