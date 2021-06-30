@@ -5,7 +5,6 @@ __email__ = "dilawar.s.rajput@gmail.com"
 __status__ = "Development"
 
 import typing as T
-from collections import defaultdict
 import tempfile
 import hashlib
 from pathlib import Path
@@ -34,8 +33,8 @@ params_: T.Dict[str, T.Any] = {}
 args_ = None
 
 # NOTE: remember these are cv coordinates and not numpy.
-locations_: T.List[T.List[float]] = []
-points_: T.List[T.List[float]] = []
+locations_: T.List[geometry.Point] = []
+points_: T.List[geometry.Point] = []
 
 img_: np.ndarray = np.zeros((1, 1))
 
@@ -66,12 +65,11 @@ def plot_traj(traj, outfile: Path):
     plt.figure()
     plt.subplot(211)
 
-    # there are numpy coords.
-    for c in locations_:
-        p = list(map(int, c))
-        p[1] = img_.shape[0] - p[1]
+    # these are numpy coords.
+    for p in locations_:
         csize = img_.shape[0] // 40
-        cv.circle(img_, tuple(p), csize, 128, -1)
+        cv.circle(img_, (p.x, p.y), csize, 128, -1)
+
     plt.imshow(img_, interpolation="none", cmap="gray")
     plt.axis(False)
     plt.title("Original")
@@ -93,7 +91,7 @@ def click_points(event, x, y, flags, params):
     # Function to record the clicks.
     if event == cv.EVENT_LBUTTONDOWN:
         logger.info("MOUSE clicked on %s,%s" % (x, y))
-        locations_.append((x, y))
+        locations_.append(geometry.Point(x, y))
 
 
 def show_frame(img, msg="MSG: "):
@@ -121,12 +119,12 @@ def ask_user_to_locate_points(points, img):
     logger.info("You clicked %s" % locations_)
 
 
-def list_to_points(points) -> T.List[T.List[float]]:
-    ps = [[float(a) for a in x.split(",")] for x in points]
+def list_to_points(points) -> T.List[geometry.Point]:
+    ps = [geometry.Point.fromCSV(x) for x in points]
     return ps
 
 
-def compute_scaling_offset(p, P) -> T.List[T.Tuple[float, float]]:
+def compute_scaling_offset(p, P: T.List[geometry.Point]) -> T.List[geometry.Point]:
     # Currently only linear maps and only 2D.
     px, py = zip(*p)
     Px, Py = zip(*P)
@@ -135,52 +133,22 @@ def compute_scaling_offset(p, P) -> T.List[T.Tuple[float, float]]:
     logger.info(
         f"{px=} -> {Px=}, {py=} -> {Py=} | {sX=:.2f} {offX=:.2f}, {sY=:.2f} {offY=:.2f}"
     )
-    return [(sX, sY), (offX, offY)]
+    return [geometry.Point(sX, sY), geometry.Point(offX, offY)]
 
 
-def transform_axis(img, erase_near_axis: int = 2):
+def transform_axis(img, erase_near_axis: int = 0):
+    global locations_
+    global points_
     # extra: extra rows and cols to erase. Help in containing error near axis.
     # compute the transformation between old and new axis.
     T = compute_scaling_offset(points_, locations_)
-
-    # FIXME: This is broken becuase compute_scaling_offset is not the right way
-    # to trim the axis. Correct way to to figure out the location of axis and
-    # trim from there. Can we make sure that user always click on lower side of
-    # axis so I can trim below that?
-    ## x-axis and y-axis chopping can be computed by offset.
-    offCols, offRows = geometry.find_origin(locations_)
+    p = geometry.find_origin(locations_)
+    offCols, offRows = p.x, p.y
     logger.info(f"{locations_=} → origin {offCols=}, {offRows=}")
-    img[:, :offCols+erase_near_axis] = params_["background"]
-    img[offRows-erase_near_axis:, :] = params_["background"]
+    img[:, : offCols + erase_near_axis] = params_["background"]
+    img[-offRows - erase_near_axis :, :] = params_["background"]
     logger.debug(f"Tranformation params: {T}")
     return T
-
-
-def _valid_px(val: int) -> int:
-    return min(max(0, val), 255)
-
-
-def find_trajectory(img, pixel, T):
-    logger.info(f"Extracting trajectory for color {pixel}")
-
-    # Find all pixels which belongs to a trajectory.
-    o = 6
-    _clower, _cupper = _valid_px(pixel - o // 2), _valid_px(pixel + o // 2)
-    logger.info(f"{_clower=} {_cupper=}")
-
-    logger.info(f"{img.min()=}, {img.max()=}")
-
-    Y, X = np.where((img >= _clower) & (img <= _cupper))
-    traj = defaultdict(list)
-    for x, y in zip(X, Y):
-        traj[x].append(y)
-
-    assert traj, "Empty trajectory"
-
-    # this is a simple fit using median.
-    new = np.zeros_like(img)
-    res = trajectory.fit_trajectory_using_median(traj, T, new)
-    return res, np.vstack((img, new))
 
 
 def _find_trajectory_colors(img, plot: bool = False) -> T.Tuple[int, T.List[int]]:
@@ -241,11 +209,13 @@ def process_image(img):
     params_ = compute_foregrond_background_stats(img)
 
     T = transform_axis(img, erase_near_axis=3)
+    assert img.std() > 0.0, "No data in image"
+    # logger.info(f" {img.mean()}  {img.std()}")
     save_img_in_cache(img, f"{args_.INPUT.name}.transformed_axis.png")
 
     # extract the plot that has color which is farthest from the background.
     trajcolor = params_["timeseries_colors"][0]
-    traj, img = find_trajectory(img, trajcolor, T)
+    traj, img = trajectory.find_trajectory(img, trajcolor, T)
     save_img_in_cache(img, f"{args_.INPUT.name}.final.png")
     return traj
 
@@ -281,12 +251,6 @@ def run(args):
         )
         ask_user_to_locate_points(points_, img_)
 
-    # opencv has (0,0) on top-left while numpy has at bottom left. Converting
-    # opencv axis to numpy axis.
-    yoffset = img_.shape[0]
-    locations_ = [(x, yoffset - y) for (x, y) in locations_]
-    logger.debug(f" translated to numpy-axis {locations_}")
-
     # erosion after dilation (closes gaps)
     if args_.preprocess:
 
@@ -294,7 +258,7 @@ def run(args):
         img_ = cv.morphologyEx(img_, cv.MORPH_CLOSE, kernel)
         save_img_in_cache(img_, f"{args_.INPUT.name}.close.png")
 
-    # remove grids if found.
+    # remove grids.
     img_ = grid.remove_grid(img_)
     save_img_in_cache(img_, f"{args_.INPUT.name}.without_grid.png")
 

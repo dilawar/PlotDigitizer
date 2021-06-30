@@ -4,6 +4,10 @@ __email__ = "dilawar.s.rajput@gmail.com"
 import numpy as np
 import cv2 as cv
 
+from collections import defaultdict
+
+from loguru import logger
+
 
 def _find_center(vec):
     return np.median(vec)
@@ -43,3 +47,31 @@ def fit_trajectory_using_median(traj, T, img):
 
     # sort by x-axis.
     return sorted(res)
+
+
+def _valid_px(val: int) -> int:
+    return min(max(0, val), 255)
+
+
+def find_trajectory(img: np.ndarray, pixel: int, T):
+    logger.info(f"Extracting trajectory for color {pixel}")
+    assert img.min() <= pixel <= img.max(), f"{pixel} is outside the range"
+
+    # Find all pixels which belongs to a trajectory.
+    o = 6
+    _clower, _cupper = _valid_px(pixel - o // 2), _valid_px(pixel + o // 2)
+    logger.info(f"{_clower=} {_cupper=}")
+
+    logger.info(f"{img.min()=}, {img.max()=}")
+
+    Y, X = np.where((img >= _clower) & (img <= _cupper))
+    traj = defaultdict(list)
+    for x, y in zip(X, Y):
+        traj[x].append(y)
+
+    assert traj, "Empty trajectory"
+
+    # this is a simple fit using median.
+    new = np.zeros_like(img)
+    res = fit_trajectory_using_median(traj, T, new)
+    return res, np.vstack((img, new))
