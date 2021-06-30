@@ -4,7 +4,6 @@ __maintainer__ = "Dilawar Singh"
 __email__ = "dilawar.s.rajput@gmail.com"
 __status__ = "Development"
 
-import sys
 import typing as T
 from collections import defaultdict
 import tempfile
@@ -16,12 +15,17 @@ import numpy as np
 import numpy.polynomial.polynomial as poly
 
 import plotdigitizer.grid as grid
+import plotdigitizer.trajectory as trajectory
 
-import logging
+# import logging
+# logging.basicConfig(level=logging.INFO)
+# logger = logging.getLogger(__name__)
 
-logging.basicConfig(level=logging.INFO)
+from loguru import logger
 
-logger = logging.getLogger(__name__)
+logger.add(
+    Path(tempfile.gettempdir()) / "plotdigitizer.log", level="DEBUG", rotation="10MB"
+)
 
 WindowName_ = "PlotDigitizer"
 ix_, iy_ = 0, 0
@@ -31,7 +35,8 @@ args_ = None
 # NOTE: remember these are cv coordinates and not numpy.
 coords_: T.List[T.List[float]] = []
 points_: T.List[T.List[float]] = []
-img_ = None
+
+img_: np.ndarray = np.zeros((1, 1))
 
 
 def cache() -> Path:
@@ -44,16 +49,12 @@ def data_to_hash(data) -> str:
     return hashlib.sha1(data).hexdigest()
 
 
-def save_img_in_cache(img: np.array, filename: str = ""):
-    if not filename:
-        filename = f"{data_to_hash(img)}.png"
+def save_img_in_cache(img: np.ndarray, filename: T.Optional[Path] = None):
+    if filename is None:
+        filename = Path(f"{data_to_hash(img)}.png")
     outpath = cache() / filename
     cv.imwrite(str(outpath), img)
     logger.debug(f" Saved to {outpath}")
-
-
-def _find_center(vec):
-    return np.median(vec)
 
 
 def plot_traj(traj, outfile: Path):
@@ -124,26 +125,36 @@ def list_to_points(points) -> T.List[T.List[float]]:
     return ps
 
 
-def compute_scaling_offset(p, P):
+def compute_scaling_offset(p, P) -> T.List[T.Tuple[float, float]]:
     # Currently only linear maps and only 2D.
     px, py = zip(*p)
     Px, Py = zip(*P)
-    sX, offX = poly.polyfit(px, Px, 1)
-    sY, offY = poly.polyfit(py, Py, 1)
-    logger.info(f"{px=} -> {Px=}, {py=} -> {Py=} | {sX=} {offX=}, {sY=} {offY=}")
-    return ((sX, sY), (offX, offY))
+    offX, sX = poly.polyfit(px, Px, 1)
+    offY, sY = poly.polyfit(py, Py, 1)
+    logger.info(
+        f"{px=} -> {Px=}, {py=} -> {Py=} | {sX=:.2f} {offX=:.2f}, {sY=:.2f} {offY=:.2f}"
+    )
+    return [(sX, sY), (offX, offY)]
 
 
 def transform_axis(img, erase_near_axis: int = 1):
     # extra: extra rows and cols to erase. Help in containing error near axis.
     # compute the transformation between old and new axis.
     T = compute_scaling_offset(points_, coords_)
-    r, _ = img.shape
-    # x-axis and y-axis chopping can be computed by offset.
-    offX, offY = T[1]
-    offCols, offRows = int(round(offX)), int(round(offY))
-    img[r - offRows - erase_near_axis :, :] = params_["background"]
-    img[:, : offCols + erase_near_axis] = params_["background"]
+
+    # FIXME: This is broken becuase compute_scaling_offset is not the right way
+    # to trim the axis. Correct way to to figure out the location of axis and
+    # trim from there. Can we make sure that user always click on lower side of
+    # axis so I can trim below that?
+    ## x-axis and y-axis chopping can be computed by offset.
+    ##r, _ = img.shape
+    ##offX, offY = T[1]
+    ##offCols, offRows = int(round(offX)), int(round(offY))
+    ##logger.info(f"Offsets: {offCols=}, {offRows=}")
+    ##img[r - offRows - erase_near_axis :, :] = params_["background"]
+    ##img[:, : offCols + erase_near_axis] = params_["background"]
+    ##logger.info(f"erase near axis: : {erase_near_axis}")
+    logger.debug(f"Tranformation params: {T}")
     return T
 
 
@@ -151,11 +162,8 @@ def _valid_px(val: int) -> int:
     return min(max(0, val), 255)
 
 
-def find_trajectory(img, pixel, T, error=0):
+def find_trajectory(img, pixel, T):
     logger.info(f"Extracting trajectory for color {pixel}")
-    res = []
-    r, _ = img.shape
-    new = np.zeros_like(img)
 
     # Find all pixels which belongs to a trajectory.
     o = 6
@@ -171,33 +179,9 @@ def find_trajectory(img, pixel, T, error=0):
 
     assert traj, "Empty trajectory"
 
-    (sX, sY), (offX, offY) = T
-    for k in sorted(traj):
-        x = k
-
-        vals = np.array(traj[k])
-
-        # For each x, we may multiple pixels in column of the image which might
-        # be y. Usually experience is that the trajectories are close to the
-        # top rather to the bottom. So we discard call pixel which are below
-        # the center of mass (median here)
-        # These are opencv pixles. So there valus starts from the top. 0
-        # belogs to top row. Therefore > rather than <.
-        avg = np.median(vals)
-        vals = vals[np.where(vals >= avg)]
-        if len(vals) == 0:
-            continue
-
-        # Still we have multiple candidates for y for each x.
-        # We find the center of these points and call it the y for given x.
-        y = _find_center(vals)
-        cv.circle(new, (x, int(y)), 2, 255, -1)
-        x1 = (x - offX) / sX
-        y1 = (r - y - offY) / sY
-        res.append((x1, y1))
-
-    # sort by x-axis.
-    res = sorted(res)
+    # this is a simple fit using median.
+    new = np.zeros_like(img)
+    res = trajectory.fit_trajectory_using_median(traj, T, new)
     return res, np.vstack((img, new))
 
 
@@ -272,15 +256,14 @@ def run(args):
     global coords_, points_
     global img_, args_
     args_ = args
-    if args_.debug:
-        logger.remove()
-        logger.add(sys.stderr, level="DEBUG")
 
     infile = Path(args.INPUT)
     assert infile.exists(), f"{infile} does not exists."
     logger.info(f"Extracting trajectories from {infile}")
 
     img_ = cv.imread(str(infile), 0)
+
+    # rescale.
     img_ = img_ - img_.min()
     img_ = (255 * (img_ / img_.max())).astype(np.uint8)
 
@@ -291,9 +274,10 @@ def run(args):
 
     points_ = list_to_points(args.data_point)
     coords_ = list_to_points(args.location)
+    logger.debug(f"{args.data_point=} → {args.location=}")
 
     if len(coords_) != len(points_):
-        logger.debug(
+        logger.warning(
             "Either the location of data-points are not specified or their numbers don't"
             " match with given datapoints. Asking user..."
         )

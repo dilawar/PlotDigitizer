@@ -25,8 +25,8 @@ test3 : test_install
 
 test4 : test_install
 	$(CMD) figures/ECGImage.png \
-		-p 1,0 -p 5,0 -p 0,1 -l 290,337 \
-		-l 1306,338 -l 106,83 \
+		-p 1,0 -p 5,0 -p 0,1 \
+		-l 290,337 -l 1306,338 -l 106,83 \
 		--plot figures/ECGImage.result.png \
 		--debug
 
@@ -38,7 +38,7 @@ test5 : test_install
 		--plot figures/graph_with_grid.result.png
 
 
-test: test_install
+test: test1 test2 test3 test4 test5
 	poetry run pytest
 
 upload:
