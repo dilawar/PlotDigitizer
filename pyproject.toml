@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "plotdigitizer"
-version = "0.2.2"
+version = "0.2.3"
 description = "Extract raw data from plots images"
 authors = ["Dilawar Singh <dilawar.s.rajput@gmail.com>"]
 maintainers = ["Dilawar Singh <dilawar.s.rajput@gmail.com>"]
@@ -13,7 +13,6 @@ python = "^3.7"
 opencv-python = "^4.5.1"
 numpy = "^1.19.5"
 matplotlib = "^3.3.4"
-loguru = "^0.5.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.2"

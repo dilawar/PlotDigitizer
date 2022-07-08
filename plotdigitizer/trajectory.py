@@ -3,10 +3,8 @@ __email__ = "dilawar.s.rajput@gmail.com"
 
 import numpy as np
 import cv2 as cv
-
 from collections import defaultdict
-
-from loguru import logger
+import logging
 
 
 def _find_center(vec):
@@ -19,7 +17,7 @@ def fit_trajectory_using_median(traj, T, img):
     r, _ = img.shape
 
     # x, y = zip(*sorted(traj.items()))
-    # logger.info((xvec, ys))
+    # logging.info((xvec, ys))
 
     for k in sorted(traj):
         x = k
@@ -54,7 +52,7 @@ def _valid_px(val: int) -> int:
 
 
 def find_trajectory(img: np.ndarray, pixel: int, T):
-    logger.info(f"Extracting trajectory for color {pixel}")
+    logging.info(f"Extracting trajectory for color {pixel}")
     assert img.min() <= pixel <= img.max(), f"{pixel} is outside the range"
 
     # Find all pixels which belongs to a trajectory.
