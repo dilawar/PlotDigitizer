@@ -11,7 +11,7 @@ import cv2
 
 WINDOW_NAME = "PlotDigitizer: Click on a point to find coordinates."
 
-img_: np.array = np.zeros((1, 1))
+img_: np.ndarray = np.zeros((1, 1))
 
 
 def _locate_points(k, x, y, s, p):
@@ -69,17 +69,19 @@ def locate(imgfile: Path):
     while cv2.getWindowProperty(WINDOW_NAME, cv2.WND_PROP_VISIBLE) > 0:
         cv2.imshow(WINDOW_NAME, img_)
         k = cv2.waitKey(30) & 0xFF
-        if k == ord('q'):
+        if k == ord("q"):
             cv2.destroyAllWindows()
             break
 
 
 def main():
     import argparse
-    parser = argparse.ArgumentParser('Find coordinate of points')
+
+    parser = argparse.ArgumentParser("Find coordinate of points")
     parser.add_argument("INFILE", type=Path, help="Inout file")
     args = parser.parse_args()
     locate(args.INFILE)
+
 
 if __name__ == "__main__":
     main()

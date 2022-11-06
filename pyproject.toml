@@ -22,6 +22,10 @@ matplotlib = "^3.4.2"
 plotdigitizer = 'plotdigitizer.plotdigitizer:main'
 plotdigitizer-locate = 'plotdigitizer.locate:main'
 
+[tool.poetry.group.dev.dependencies]
+mypy = "^0.982"
+pylint = "^2.15.5"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
