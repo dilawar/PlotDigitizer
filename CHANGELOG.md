@@ -1,3 +1,7 @@
+# [0.2.3] 2022-07-08
+
+- Removed loguru. #11
+
 # 2021-06-30: v0.2.2
 
 - Fixed regression: axis transformation was broken.

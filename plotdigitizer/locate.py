@@ -4,7 +4,7 @@ __author__ = "Dilawar Singh"
 __email__ = "dilawar@subcom.tech"
 
 from pathlib import Path
-from loguru import logger
+import logging
 import numpy as np
 import math
 import cv2
@@ -17,7 +17,7 @@ img_: np.array = np.zeros((1, 1))
 def _locate_points(k, x, y, s, p):
     global img_
     if k == 4:
-        logger.info(f"You clicked on {x}/{y}")
+        logging.info(f"You clicked on {x}/{y}")
         _add_point(x, y)
 
 
@@ -60,7 +60,7 @@ def _add_axis(img):
 
 def locate(imgfile: Path):
     global img_
-    logger.info(f"Loading {imgfile}")
+    logging.info(f"Loading {imgfile}")
     assert imgfile.is_file(), f"{imgfile} does not exists or could not be read"
     cv2.namedWindow(WINDOW_NAME)
     cv2.setMouseCallback(WINDOW_NAME, _locate_points)

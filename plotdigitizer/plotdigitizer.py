@@ -21,14 +21,7 @@ import plotdigitizer.geometry as geometry
 # Logger
 #
 import sys
-from loguru import logger
-
-logger.remove()
-logger.add(sys.stderr, level="WARNING")
-
-logger.add(
-    Path(tempfile.gettempdir()) / "plotdigitizer.log", level="DEBUG", rotation="10MB"
-)
+import logging
 
 WindowName_ = "PlotDigitizer"
 ix_, iy_ = 0, 0
@@ -58,7 +51,7 @@ def save_img_in_cache(img: np.ndarray, filename: T.Optional[T.Union[Path, str]] 
         filename = Path(f"{data_to_hash(img)}.png")
     outpath = cache() / filename
     cv.imwrite(str(outpath), img)
-    logger.debug(f" Saved to {outpath}")
+    logging.debug(f" Saved to {outpath}")
 
 
 def plot_traj(traj, outfile: Path):
@@ -84,7 +77,7 @@ def plot_traj(traj, outfile: Path):
         plt.show()
     else:
         plt.savefig(outfile)
-        logger.info(f"Saved to {outfile}")
+        logging.info(f"Saved to {outfile}")
     plt.close()
 
 
@@ -94,7 +87,7 @@ def click_points(event, x, y, flags, params):
     # Function to record the clicks.
     YROWS = img_.shape[0]
     if event == cv.EVENT_LBUTTONDOWN:
-        logger.info(f"You clicked on {(x, YROWS-y)}")
+        logging.info(f"You clicked on {(x, YROWS-y)}")
         locations_.append(geometry.Point(x, YROWS - y))
 
 
@@ -120,7 +113,7 @@ def ask_user_to_locate_points(points, img):
         key = cv.waitKey(1) & 0xFF
         if key == "q":
             break
-    logger.info("You clicked %s" % locations_)
+    logging.info("You clicked %s" % locations_)
 
 
 def list_to_points(points) -> T.List[geometry.Point]:
@@ -148,10 +141,10 @@ def transform_axis(img, erase_near_axis: int = 0):
     T = axis_transformation(points_, locations_)
     p = geometry.find_origin(locations_)
     offCols, offRows = p.x, p.y
-    logger.info(f"{locations_} → origin {offCols}, {offRows}")
+    logging.info(f"{locations_} → origin {offCols}, {offRows}")
     img[:, : offCols + erase_near_axis] = params_["background"]
     img[-offRows - erase_near_axis :, :] = params_["background"]
-    logger.debug(f"Tranformation params: {T}")
+    logging.debug(f"Tranformation params: {T}")
     return T
 
 
@@ -184,7 +177,7 @@ def _find_trajectory_colors(img, plot: bool = False) -> T.Tuple[int, T.List[int]
 
     # we assume that bgcolor is close to white.
     if bgcolor < 128:
-        logger.error(
+        logging.error(
             "I computed that background is 'dark' which is unacceptable to me."
         )
         quit(-1)
@@ -203,7 +196,7 @@ def compute_foregrond_background_stats(img) -> T.Dict[str, float]:
     bgcolor, trajcolors = _find_trajectory_colors(img)
     params["background"] = bgcolor
     params["timeseries_colors"] = trajcolors
-    logger.info(f" computed parameters: {params}")
+    logging.info(f" computed parameters: {params}")
     return params
 
 
@@ -214,7 +207,7 @@ def process_image(img):
 
     T = transform_axis(img, erase_near_axis=3)
     assert img.std() > 0.0, "No data in image"
-    # logger.info(f" {img.mean()}  {img.std()}")
+    # logging.info(f" {img.mean()}  {img.std()}")
     save_img_in_cache(img, f"{args_.INPUT.name}.transformed_axis.png")
 
     # extract the plot that has color which is farthest from the background.
@@ -231,7 +224,7 @@ def run(args):
 
     infile = Path(args.INPUT)
     assert infile.exists(), f"{infile} does not exists."
-    logger.info(f"Extracting trajectories from {infile}")
+    logging.info(f"Extracting trajectories from {infile}")
 
     img_ = cv.imread(str(infile), 0)
 
@@ -246,10 +239,10 @@ def run(args):
 
     points_ = list_to_points(args.data_point)
     locations_ = list_to_points(args.location)
-    logger.debug(f"data points {args.data_point} → location on image {args.location}")
+    logging.debug(f"data points {args.data_point} → location on image {args.location}")
 
     if len(locations_) != len(points_):
-        logger.warning(
+        logging.warning(
             "Either the location of data-points are not specified or their numbers don't"
             " match with given datapoints. Asking user..."
         )
@@ -275,7 +268,7 @@ def run(args):
     with open(outfile, "w") as f:
         for r in traj:
             f.write("%g %g\n" % (r))
-    logger.info("Wrote trajectory to %s" % outfile)
+    logging.info("Wrote trajectory to %s" % outfile)
 
 
 def main():
@@ -323,12 +316,6 @@ def main():
         required=False,
         action="store_true",
         help="Preprocess the image. Useful with bad resolution images.",
-    )
-    parser.add_argument(
-        "--debug",
-        required=False,
-        action="store_true",
-        help="Enable debug logger",
     )
     args = parser.parse_args()
     run(args)

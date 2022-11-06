@@ -1,15 +1,16 @@
-CMD = poetry run plotdigitizer
+PYTHON := $(shell which python)
+POETRY := $(PYTHON) -m poetry
 
 all : test
 
 test_install :
-	poetry install
+	$(POETRY) install
 
 test: test_install
-	poetry run pytest -ra -q
+	$(POETRY) run pytest -ra -q
 
 upload:
-	poetry build && poetry publish -u __token__ -p $(PYPI_TOKEN)
+	$(POETRY) build && $(POETRY) publish -u __token__ -p $(PYPI_TOKEN)
 
 install:
 	python3 -m pip install .
