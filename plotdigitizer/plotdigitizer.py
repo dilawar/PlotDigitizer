@@ -1,27 +1,27 @@
 __author__ = "Dilawar Singh"
-__copyright__ = "Copyright 2017-, Dilawar Singh"
-__maintainer__ = "Dilawar Singh"
 __email__ = "dilawar.s.rajput@gmail.com"
-__status__ = "Development"
 
+import os
 import typing as T
 import tempfile
 import hashlib
 from pathlib import Path
 
 import cv2 as cv
+
 import numpy as np
+import numpy.typing as npt
 import numpy.polynomial.polynomial as poly
 
 import plotdigitizer.grid as grid
-import plotdigitizer.trajectory as trajectory
+from plotdigitizer.trajectory import find_trajectory, normalize
 import plotdigitizer.geometry as geometry
 
-#
 # Logger
-#
-import sys
 import logging
+
+LOGLEVEL = os.environ.get("LOGLEVEL", "INFO").upper()
+logging.basicConfig(level=LOGLEVEL)
 
 WindowName_ = "PlotDigitizer"
 ix_, iy_ = 0, 0
@@ -46,7 +46,9 @@ def data_to_hash(data) -> str:
     return hashlib.sha1(data).hexdigest()
 
 
-def save_img_in_cache(img: np.ndarray, filename: T.Optional[T.Union[Path, str]] = None):
+def save_img_in_cache(
+    img: npt.ArrayLike, filename: T.Optional[T.Union[Path, str]] = None
+):
     if filename is None:
         filename = Path(f"{data_to_hash(img)}.png")
     outpath = cache() / filename
@@ -81,7 +83,7 @@ def plot_traj(traj, outfile: Path):
     plt.close()
 
 
-def click_points(event, x, y, flags, params):
+def click_points(event, x, y, _flags, params):
     global img_
     assert img_ is not None, "No data set"
     # Function to record the clicks.
@@ -148,12 +150,14 @@ def transform_axis(img, erase_near_axis: int = 0):
     return T
 
 
-def _find_trajectory_colors(img, plot: bool = False) -> T.Tuple[int, T.List[int]]:
+def _find_trajectory_colors(
+    img: np.ndarray, plot: bool = False
+) -> T.Tuple[int, T.List[int]]:
     # Each trajectory color x is bounded in the range x-3 to x+2 (interval of
     # 5) -> total 51 bins. Also it is very unlikely that colors which are too
     # close to each other are part of different trajecotries. It is safe to
     # assme a binwidth of at least 10px.
-    hs, bs = np.histogram(img.ravel(), 255 // 10, [0, img.max()])
+    hs, bs = np.histogram(img.flatten(), 255 // 10, (0, img.max()))
 
     # Now a trajectory is only trajectory if number of pixels close to the
     # width of the image (we are using at least 75% of width).
@@ -196,7 +200,7 @@ def compute_foregrond_background_stats(img) -> T.Dict[str, float]:
     bgcolor, trajcolors = _find_trajectory_colors(img)
     params["background"] = bgcolor
     params["timeseries_colors"] = trajcolors
-    logging.info(f" computed parameters: {params}")
+    logging.debug(f" computed parameters: {params}")
     return params
 
 
@@ -206,13 +210,14 @@ def process_image(img):
     params_ = compute_foregrond_background_stats(img)
 
     T = transform_axis(img, erase_near_axis=3)
-    assert img.std() > 0.0, "No data in image"
-    # logging.info(f" {img.mean()}  {img.std()}")
+    assert img.std() > 0.0, "No data in the image!"
+    logging.info(f" {img.mean()}  {img.std()}")
     save_img_in_cache(img, f"{args_.INPUT.name}.transformed_axis.png")
 
     # extract the plot that has color which is farthest from the background.
     trajcolor = params_["timeseries_colors"][0]
-    traj, img = trajectory.find_trajectory(img, trajcolor, T)
+    img = normalize(img)
+    traj, img = find_trajectory(img, trajcolor, T)
     save_img_in_cache(img, f"{args_.INPUT.name}.final.png")
     return traj
 
@@ -226,15 +231,25 @@ def run(args):
     assert infile.exists(), f"{infile} does not exists."
     logging.info(f"Extracting trajectories from {infile}")
 
+    # reads into gray-scale.
     img_ = cv.imread(str(infile), 0)
+    img_ = normalize(img_)
 
-    # rescale.
-    img_ = img_ - img_.min()
-    img_ = (255 * (img_ / img_.max())).astype(np.uint8)
+    # erosion after dilation (closes gaps)
+    if args_.preprocess:
+        kernel = np.ones((1, 1), np.uint8)
+        img_ = cv.morphologyEx(img_, cv.MORPH_CLOSE, kernel)
+        save_img_in_cache(img_, Path(f"{args_.INPUT.name}.close.png"))
 
+    # remove grids.
+    img_ = grid.remove_grid(img_)
+    save_img_in_cache(img_, Path(f"{args_.INPUT.name}.without_grid.png"))
+
+    # rescale it again.
+    img_ = normalize(img_)
+    logging.debug(" {img_.min()=} {img_.max()=}")
     assert img_.max() <= 255
     assert img_.min() < img_.mean() < img_.max(), "Could not read meaningful data"
-
     save_img_in_cache(img_, args_.INPUT.name)
 
     points_ = list_to_points(args.data_point)
@@ -248,23 +263,12 @@ def run(args):
         )
         ask_user_to_locate_points(points_, img_)
 
-    # erosion after dilation (closes gaps)
-    if args_.preprocess:
-
-        kernel = np.ones((1, 1), np.uint8)
-        img_ = cv.morphologyEx(img_, cv.MORPH_CLOSE, kernel)
-        save_img_in_cache(img_, Path(f"{args_.INPUT.name}.close.png"))
-
-    # remove grids.
-    img_ = grid.remove_grid(img_)
-    save_img_in_cache(img_, Path(f"{args_.INPUT.name}.without_grid.png"))
-
     traj = process_image(img_)
 
     if args_.plot is not None:
         plot_traj(traj, args_.plot)
 
-    outfile = args.output or "%s.traj.csv" % args.INPUT
+    outfile = args.output or f"{args.INPUT}.traj.csv"
     with open(outfile, "w") as f:
         for r in traj:
             f.write("%g %g\n" % (r))

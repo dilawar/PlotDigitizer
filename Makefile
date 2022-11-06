@@ -6,7 +6,7 @@ all : test
 test_install :
 	$(POETRY) install
 
-test: test_install
+test: lint test_install
 	$(POETRY) run pytest -ra -q
 
 upload:
@@ -16,4 +16,4 @@ install:
 	python3 -m pip install .
 
 lint:
-	mypy
+	$(POETRY) run mypy --ignore-missing-imports --install-types --non-interactive plotdigitizer tests

@@ -11,6 +11,12 @@ def _find_center(vec):
     return np.median(vec)
 
 
+# Thanks https://codereview.stackexchange.com/a/185794
+def normalize(img):
+    """normalize image to 0, 255"""
+    return np.interp(img, (img.min(), img.max()), (0, 255)).astype(np.uint8)
+
+
 def fit_trajectory_using_median(traj, T, img):
     (sX, sY), (offX, offY) = T
     res = []
@@ -53,7 +59,9 @@ def _valid_px(val: int) -> int:
 
 def find_trajectory(img: np.ndarray, pixel: int, T):
     logging.info(f"Extracting trajectory for color {pixel}")
-    assert img.min() <= pixel <= img.max(), f"{pixel} is outside the range"
+    assert (
+        img.min() <= pixel <= img.max()
+    ), f"{pixel} is outside the range: [{img.min()}, {img.max()}]"
 
     # Find all pixels which belongs to a trajectory.
     o = 6
