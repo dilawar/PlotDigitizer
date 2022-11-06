@@ -10,7 +10,7 @@ test: lint test_install
 	$(POETRY) run pytest -ra -q
 
 upload:
-	$(POETRY) build && $(POETRY) publish -u __token__ -p $(PYPI_TOKEN)
+	$(POETRY) build && $(POETRY) publish -u __token__ -p $(PLOTDIGITIZER_TOKEN)
 
 install:
 	python3 -m pip install .
