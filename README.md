@@ -130,12 +130,10 @@ the detection below it.__
 
 # Limitations
 
-Currently this script has following limitations:
+This application has following limitations:
 
-- Background must not be transparent. It might work with transparent background but
-  I've not tested it.
 - Only b/w images are supported for now. Color images will be converted to grayscale upon reading.
-- One image should have only one trajectory.
+- Each plot should have only one trajectory.
 
 ## Need help
 
