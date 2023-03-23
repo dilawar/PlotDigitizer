@@ -1,15 +1,11 @@
 ![Python application](https://github.com/dilawar/PlotDigitizer/workflows/Python%20application/badge.svg) [![PyPI version](https://badge.fury.io/py/plotdigitizer.svg)](https://badge.fury.io/py/plotdigitizer) [![DOI](https://zenodo.org/badge/140683649.svg)](https://zenodo.org/badge/latestdoi/140683649)
 
-A Python3 command line utility to digitize plots
+A Python3 command line utility to digitize plots in batch mode.
 
-This utility is useful when you have a lot of similar plots that needs to be
-digitized such as EEG, ECG recordings. See examples below.
+This utility is useful when you have a lot of similar plots such as EEG, ECG recordings. See examples below.
 
-Feel free to contact me for commercial work that may require optimizing this
-pipeline for your use case. Please send a sample plot.
-
-For occasional use, have a look at
-[WebPlotDigitizer](https://automeris.io/WebPlotDigitizer/) by Ankit Rohatagi.
+For one-off use cases, you will find web-based digitizer [WebPlotDigitizer](https://automeris.io/WebPlotDigitizer/) 
+by Ankit Rohatagi much more easier to use.
 
 ## Installation
 
@@ -145,7 +141,7 @@ Currently this script has following limitations:
 
 Open an issue and please attach the sample plot.
 
-## Related projects by others
+## Related Projects
 
 1.  [WebPlotDigitizer](https://automeris.io/WebPlotDigitizer/) by Ankit
 Rohatagi is very versatile.
