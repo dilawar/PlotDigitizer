@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "plotdigitizer"
-version = "0.2.4"
+version = "0.3.0"
 description = "Extract raw data from plots images"
 authors = ["Dilawar Singh <dilawar.s.rajput@gmail.com>"]
 maintainers = ["Dilawar Singh <dilawar.s.rajput@gmail.com>"]
