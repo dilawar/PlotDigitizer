@@ -2,8 +2,10 @@ __author__ = "Dilawar Singh"
 __email__ = "dilawar.s.rajput@gmail.com"
 
 from pathlib import Path
+import typing as T
 import cv2 as cv
 import numpy as np
+import numpy.typing as npt
 
 import tempfile
 
@@ -31,9 +33,12 @@ def heal(orig):
 
 
 def remove_grid(
-    orig, num_iter=3, background_color: int = 255, grid_size: int = 2
+    orig: npt.ArrayLike,
+    num_iter: int = 3,
+    background_color: T.Sequence[int] = (255, 255, 255),
+    grid_size: int = 2,
 ) -> np.ndarray:
-    img = orig.copy()
+    img = np.array(orig, copy=True)
     thres = cv.threshold(img, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU)[1]
     # Remove horizontal lines
     horizontal_kernel = cv.getStructuringElement(cv.MORPH_RECT, (40, 1))
@@ -41,8 +46,8 @@ def remove_grid(
         thres, cv.MORPH_OPEN, horizontal_kernel, iterations=num_iter
     )
     cnts = cv.findContours(remove_horizontal, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-    cnts = cnts[0] if len(cnts) == 2 else cnts[1]
-    for c in cnts:
+    contours = cnts[0] if len(cnts) == 2 else cnts[1]
+    for c in contours:
         cv.drawContours(img, [c], -1, background_color, grid_size)
 
     # Remove vertical lines
@@ -51,8 +56,8 @@ def remove_grid(
         thres, cv.MORPH_OPEN, vertical_kernel, iterations=num_iter
     )
     cnts = cv.findContours(remove_vertical, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-    cnts = cnts[0] if len(cnts) == 2 else cnts[1]
-    for c in cnts:
+    contours = cnts[0] if len(cnts) == 2 else cnts[1]
+    for c in contours:
         cv.drawContours(img, [c], -1, background_color, grid_size)
     return img
 

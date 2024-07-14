@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "plotdigitizer"
-version = "0.2.3"
+version = "0.3.0"
 description = "Extract raw data from plots images"
 authors = ["Dilawar Singh <dilawar.s.rajput@gmail.com>"]
 maintainers = ["Dilawar Singh <dilawar.s.rajput@gmail.com>"]
@@ -9,22 +9,22 @@ repository = "https://github.com/dilawar/PlotDigitizer"
 license = "LGPL-3.0-or-later"
 
 [tool.poetry.dependencies]
-python = "^3.8"
-opencv-python = "^4.5.1"
-numpy = "^1.23"
-matplotlib = "^3.3.4"
+python = ">=3.9,<=4"
+opencv-python = "^4.10"
+numpy = "^2.0.0"
+matplotlib = "^3.9.1"
 
 [tool.poetry.dev-dependencies]
-pytest = "^6.2.2"
-matplotlib = "^3.4.2"
+pytest = "^8.2.2"
+matplotlib = "^3.9.1"
 
 [tool.poetry.scripts]
 plotdigitizer = 'plotdigitizer.plotdigitizer:main'
 plotdigitizer-locate = 'plotdigitizer.locate:main'
 
 [tool.poetry.group.dev.dependencies]
-mypy = "^0.982"
-pylint = "^2.15.5"
+mypy = "^1.10"
+pylint = "^3.2.5"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
