@@ -1,5 +1,5 @@
 PYTHON := $(shell which python)
-POETRY := $(PYTHON) -m poetry
+POETRY := poetry
 
 all : test
 

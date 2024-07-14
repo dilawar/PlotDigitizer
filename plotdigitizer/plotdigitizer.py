@@ -33,7 +33,7 @@ args_: T.Optional[T.Any] = None
 locations_: T.List[geometry.Point] = []
 points_: T.List[geometry.Point] = []
 
-img_: np.ndarray = np.zeros((1, 1))
+img_: npt.NDArray[np.float64] = np.zeros((1, 1))
 
 
 def cache() -> Path:
@@ -52,7 +52,7 @@ def save_img_in_cache(
     if filename is None:
         filename = Path(f"{data_to_hash(img)}.png")
     outpath = cache() / filename
-    cv.imwrite(str(outpath), img)
+    cv.imwrite(str(outpath), np.array(img))
     logging.debug(f" Saved to {outpath}")
 
 
@@ -66,7 +66,9 @@ def plot_traj(traj, outfile: Path):
 
     for p in locations_:
         csize = img_.shape[0] // 40
-        cv.circle(img_, (p.x, img_.shape[0] - p.y), csize, 128, -1)
+        cv.circle(
+            img_, (int(p.x), int(img_.shape[0] - p.y)), int(csize), (128, 128, 128), -1
+        )
 
     plt.imshow(img_, interpolation="none", cmap="gray")
     plt.axis(False)
