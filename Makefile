@@ -17,3 +17,6 @@ install:
 
 lint:
 	$(POETRY) run mypy --ignore-missing-imports --install-types --non-interactive plotdigitizer tests
+
+fmt:
+	black plotdigitizer/* tests/*
