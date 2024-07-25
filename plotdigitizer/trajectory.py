@@ -11,12 +11,6 @@ def _find_center(vec):
     return np.median(vec)
 
 
-# Thanks https://codereview.stackexchange.com/a/185794
-def normalize(img):
-    """normalize image to 0, 255"""
-    return np.interp(img, (img.min(), img.max()), (0, 255)).astype(np.uint8)
-
-
 def fit_trajectory_using_median(traj, T, img):
     (sX, sY), (offX, offY) = T
     res = []
