@@ -116,7 +116,7 @@ def digitize_plot(
     ] = [],
     plot_file: Annotated[
         T.Optional[Path],
-        typer.Option("--plot-file", help="Plot the final result. Requires matplotlib"),
+        typer.Option("--plot", help="Plot the final result. Requires matplotlib"),
     ] = None,
     output: Annotated[
         T.Optional[Path],
