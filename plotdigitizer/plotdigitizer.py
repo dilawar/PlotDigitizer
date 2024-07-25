@@ -12,6 +12,8 @@ import cv2 as cv
 import numpy as np
 import numpy.typing as npt
 import numpy.polynomial.polynomial as poly
+import typer
+from typing_extensions import Annotated
 
 import plotdigitizer.grid as grid
 from plotdigitizer.trajectory import find_trajectory, normalize
@@ -34,6 +36,8 @@ locations_: T.List[geometry.Point] = []
 points_: T.List[geometry.Point] = []
 
 img_: npt.NDArray[np.float64] = np.zeros((1, 1))
+
+app = typer.Typer()
 
 
 def cache() -> Path:
@@ -224,12 +228,51 @@ def process_image(img):
     return traj
 
 
-def run(args):
+@app.command()
+def digitize_plot(
+    infile: Path,
+    data_point: Annotated[
+        T.List[str],
+        typer.Option(
+            "--data-point",
+            "-p",
+            help="Datapoints (min 3 required). You have to click on them later "
+            "e.g. `-p 0,0 -p 10,0 -p 0,1`. Make sure that point are comma "
+            "separated without any space.",
+        ),
+    ],
+    location: Annotated[
+        T.List[str],
+        typer.Option(
+            "--location",
+            "-l",
+            help="Location of a points on figure in pixels (integer)[."
+            " These values should appear in the same order as -p option."
+            " If not given, you will be asked to click on the figure.",
+        ),
+    ] = [],
+    plot_file: Annotated[
+        T.Optional[Path],
+        typer.Option("--plot-file", help="Plot the final result. Requires matplotlib"),
+    ] = None,
+    output: Annotated[
+        T.Optional[Path],
+        typer.Option(
+            "--output", "-o", help="Name of the output file (default <INPUT>.traj.csv)"
+        ),
+    ] = None,
+    preprocess: Annotated[
+        bool,
+        typer.Option(
+            "--preprocess",
+            "-P",
+            help="Preprocess the image. Useful with bad resolution images",
+        ),
+    ] = False,
+):
     global locations_, points_
-    global img_, args_
-    args_ = args
+    global img_
 
-    infile = Path(args.INPUT)
     assert infile.exists(), f"{infile} does not exists."
     logging.info(f"Extracting trajectories from {infile}")
 
@@ -238,25 +281,25 @@ def run(args):
     img_ = normalize(img_)
 
     # erosion after dilation (closes gaps)
-    if args_.preprocess:
+    if preprocess:
         kernel = np.ones((1, 1), np.uint8)
         img_ = cv.morphologyEx(img_, cv.MORPH_CLOSE, kernel)
-        save_img_in_cache(img_, Path(f"{args_.INPUT.name}.close.png"))
+        save_img_in_cache(img_, Path(f"{infile.name}.close.png"))
 
     # remove grids.
     img_ = grid.remove_grid(img_)
-    save_img_in_cache(img_, Path(f"{args_.INPUT.name}.without_grid.png"))
+    save_img_in_cache(img_, Path(f"{infile.name}.without_grid.png"))
 
     # rescale it again.
     img_ = normalize(img_)
     logging.debug(" {img_.min()=} {img_.max()=}")
     assert img_.max() <= 255
     assert img_.min() < img_.mean() < img_.max(), "Could not read meaningful data"
-    save_img_in_cache(img_, args_.INPUT.name)
+    save_img_in_cache(img_, infile.name)
 
-    points_ = list_to_points(args.data_point)
-    locations_ = list_to_points(args.location)
-    logging.debug(f"data points {args.data_point} → location on image {args.location}")
+    points_ = list_to_points(data_point)
+    locations_ = list_to_points(location)
+    logging.debug(f"data points {data_point} → location on image {location}")
 
     if len(locations_) != len(points_):
         logging.warning(
@@ -267,65 +310,15 @@ def run(args):
 
     traj = process_image(img_)
 
-    if args_.plot is not None:
-        plot_traj(traj, args_.plot)
+    if plot_file is not None:
+        plot_traj(traj, plot_file)
 
-    outfile = args.output or f"{args.INPUT}.traj.csv"
+    outfile = output or f"{infile}.traj.csv"
     with open(outfile, "w") as f:
         for r in traj:
             f.write("%g %g\n" % (r))
     logging.info("Wrote trajectory to %s" % outfile)
 
 
-def main():
-    # Argument parser.
-    import argparse
-
-    description = """Digitize image."""
-    parser = argparse.ArgumentParser(description=description)
-    parser.add_argument("INPUT", type=Path, help="Input image file.")
-    parser.add_argument(
-        "--data-point",
-        "-p",
-        required=True,
-        action="append",
-        help="Datapoints (min 3 required). You have to click on them later."
-        " At least 3 points are recommended. e.g -p 0,0 -p 10,0 -p 0,1 "
-        "Make sure that point are comma separated without any space.",
-    )
-    parser.add_argument(
-        "--location",
-        "-l",
-        required=False,
-        default=[],
-        action="append",
-        help="Location of a points on figure in pixels (integer)."
-        " These values should appear in the same order as -p option."
-        " If not given, you will be asked to click on the figure.",
-    )
-    parser.add_argument(
-        "--plot",
-        default=None,
-        required=False,
-        help="Plot the final result. Requires matplotlib.",
-    )
-    parser.add_argument(
-        "--output",
-        "-o",
-        required=False,
-        type=str,
-        help="Name of the output file else trajectory will be written to "
-        " <INPUT>.traj.csv",
-    )
-    parser.add_argument(
-        "--preprocess",
-        required=False,
-        action="store_true",
-        help="Preprocess the image. Useful with bad resolution images.",
-    )
-    args = parser.parse_args()
-    run(args)
-
-
-if __name__ == "__main__":
-    main()
+def main() -> T.Any:
+    return app()
