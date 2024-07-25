@@ -2,14 +2,14 @@
 
 # [0.3.0] 2024-07-14
 
-It is a maintenance release. The minimum supported version is 3.9.
+It is a maintenance release. The minimum supported python version is 3.9.
 
 - Update to dependencies.
 
 # [0.2.3] 2022-11-06
 
 - Removed loguru. #11
-- Drop support of python3.7. M
+- Drop support of python3.7.
 - Fixed #14
 - Better Windows support.
 
