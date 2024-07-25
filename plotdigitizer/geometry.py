@@ -44,7 +44,7 @@ def find_origin(pts: T.List[Point]) -> Point:
     points = set(pts)
     assert len(horizontal) > 1, f"Must have at least two colinear points {horizontal}"
     verticals = points - horizontal
-    assert len(verticals) > 0, f"Must be at least one vertical point"
+    assert len(verticals) > 0, "Must be at least one vertical point"
     originY = statistics.mean([p.y for p in horizontal])
     originX = statistics.mean([p.x for p in verticals])
     return Point(originX, originY)

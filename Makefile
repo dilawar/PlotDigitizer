@@ -16,7 +16,8 @@ install:
 	python3 -m pip install .
 
 lint:
+	$(POETRY) run ruff check . 
 	$(POETRY) run mypy --ignore-missing-imports --install-types --non-interactive plotdigitizer tests
 
 fmt:
-	black plotdigitizer/* tests/*
+	$(POETRY) run ruff format .
