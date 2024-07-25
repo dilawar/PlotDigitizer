@@ -6,7 +6,6 @@ import hashlib
 import tempfile
 
 import numpy as np
-import numpy.typing as npt
 from plotdigitizer import geometry
 
 WindowName_ = "PlotDigitizer"
@@ -17,7 +16,7 @@ params_: T.Dict[str, T.Any] = {}
 locations_: T.List[geometry.Point] = []
 points_: T.List[geometry.Point] = []
 
-img_: npt.NDArray[np.float64] = np.zeros((1, 1))
+img_ = np.zeros((1, 1))
 
 def cache() -> Path:
     c = Path(tempfile.gettempdir()) / "plotdigitizer"

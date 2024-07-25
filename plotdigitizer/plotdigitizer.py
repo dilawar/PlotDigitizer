@@ -124,14 +124,14 @@ def digitize_plot(
             "--output", "-o", help="Name of the output file (default <INPUT>.traj.csv)"
         ),
     ] = None,
-    preprocess: Annotated[
-        bool,
-        typer.Option(
-            "--preprocess",
-            "-P",
-            help="Preprocess the image. Useful with bad resolution images",
-        ),
-    ] = False,
+    # preprocess: Annotated[
+    #     bool,
+    #     typer.Option(
+    #         "--preprocess",
+    #         "-P",
+    #         help="Preprocess the image. Useful with bad resolution images",
+    #     ),
+    # ] = False,
 ):
     global locations_, points_
     global img_
@@ -140,18 +140,17 @@ def digitize_plot(
     logging.info(f"Extracting trajectories from {infile}")
 
     # reads into gray-scale.
-    common.img_ = cv.imread(str(infile), 0)
-    common.img_ = image.normalize(img_)
+    common.img_ = image.normalize(cv.imread(str(infile), 0))
 
-    # erosion after dilation (closes gaps)
-    if preprocess:
-        kernel = np.ones((1, 1), np.uint8)
-        common.img_ = cv.morphologyEx(img_, cv.MORPH_CLOSE, kernel)
-        image.save_img_in_cache(img_, Path(f"{infile.name}.close.png"))
+    # # erosion after dilation (closes gaps)
+    # if preprocess:
+    #     kernel = np.ones((1, 1), np.uint8)
+    #     common.img_ = cv.morphologyEx(common.img_, cv.MORPH_CLOSE, kernel)
+    #     image.save_img_in_cache(common.img_, Path(f"{infile.name}.close.png"))
 
     # remove grids.
-    img_ = grid.remove_grid(img_)
-    image.save_img_in_cache(img_, Path(f"{infile.name}.without_grid.png"))
+    common.img_ = grid.remove_grid(common.img_)
+    image.save_img_in_cache(common.img_, Path(f"{infile.name}.without_grid.png"))
 
     # rescale it again.
     common.img_ = image.normalize(common.img_)
@@ -164,14 +163,14 @@ def digitize_plot(
     common.locations_ = list_to_points(location)
     logging.debug(f"data points {data_point} → location on image {location}")
 
-    if len(locations_) != len(common.points_):
+    if len(common.locations_) != len(common.points_):
         logging.warning(
             "Either the location of data-points are not specified or their numbers don't"
             " match with given datapoints. Asking user..."
         )
         ask_user_to_locate_points(common.points_, common.img_)
 
-    traj = image.process_image(common.img_)
+    traj = image.process_image(common.img_, "_image")
 
     if plot_file is not None:
         plot_traj(traj, plot_file)

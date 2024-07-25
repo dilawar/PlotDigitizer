@@ -14,7 +14,7 @@ from plotdigitizer import geometry
 from plotdigitizer.trajectory import find_trajectory
 
 
-def process_image(img, cache_key: None):
+def process_image(img, cache_key: T.Optional[str] = None):
     global params_
     global args_
     common.params_ = compute_foregrond_background_stats(img)
