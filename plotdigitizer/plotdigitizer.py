@@ -52,38 +52,35 @@ def plot_traj(traj, outfile: Path):
 
 
 def click_points(event, x, y, _flags, params):
-    global img_
-    assert img_ is not None, "No data set"
+    assert common.img_ is not None, "No data set"
     # Function to record the clicks.
-    YROWS = img_.shape[0]
+    YROWS = common.img_.shape[0]
     if event == cv.EVENT_LBUTTONDOWN:
         logging.info(f"You clicked on {(x, YROWS-y)}")
-        locations_.append(geometry.Point(x, YROWS - y))
+        common.locations_.append(geometry.Point(x, YROWS - y))
 
 
 def show_frame(img, msg="MSG: "):
-    global WindowName_
     msgImg = np.zeros(shape=(50, img.shape[1]))
     cv.putText(msgImg, msg, (1, 40), 0, 0.5, 255)
     newImg = np.vstack((img, msgImg.astype(np.uint8)))
-    cv.imshow(WindowName_, newImg)
+    cv.imshow(common.WindowName_, newImg)
 
 
 def ask_user_to_locate_points(points, img):
-    global locations_
-    cv.namedWindow(WindowName_)
-    cv.setMouseCallback(WindowName_, click_points)
-    while len(locations_) < len(points):
-        i = len(locations_)
+    cv.namedWindow(common.WindowName_)
+    cv.setMouseCallback(common.WindowName_, click_points)
+    while len(common.locations_) < len(points):
+        i = len(common.locations_)
         p = points[i]
-        pLeft = len(points) - len(locations_)
+        pLeft = len(points) - len(common.locations_)
         show_frame(img, "Please click on %s (%d left)" % (p, pLeft))
-        if len(locations_) == len(points):
+        if len(common.locations_) == len(points):
             break
         key = cv.waitKey(1) & 0xFF
         if key == "q":
             break
-    logging.info("You clicked %s" % locations_)
+    logging.info("You clicked %s" % common.locations_)
 
 
 def list_to_points(points) -> T.List[geometry.Point]:
@@ -124,29 +121,12 @@ def digitize_plot(
             "--output", "-o", help="Name of the output file (default <INPUT>.traj.csv)"
         ),
     ] = None,
-    # preprocess: Annotated[
-    #     bool,
-    #     typer.Option(
-    #         "--preprocess",
-    #         "-P",
-    #         help="Preprocess the image. Useful with bad resolution images",
-    #     ),
-    # ] = False,
 ):
-    global locations_, points_
-    global img_
-
     assert infile.exists(), f"{infile} does not exists."
     logging.info(f"Extracting trajectories from {infile}")
 
     # reads into gray-scale.
     common.img_ = image.normalize(cv.imread(str(infile), 0))
-
-    # # erosion after dilation (closes gaps)
-    # if preprocess:
-    #     kernel = np.ones((1, 1), np.uint8)
-    #     common.img_ = cv.morphologyEx(common.img_, cv.MORPH_CLOSE, kernel)
-    #     image.save_img_in_cache(common.img_, Path(f"{infile.name}.close.png"))
 
     # remove grids.
     common.img_ = grid.remove_grid(common.img_)
