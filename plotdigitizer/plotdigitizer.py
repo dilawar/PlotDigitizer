@@ -16,7 +16,7 @@ from plotdigitizer import geometry
 from plotdigitizer import common
 
 # Logger
-import logging
+from loguru import logger
 
 
 app = typer.Typer()
@@ -47,7 +47,7 @@ def plot_traj(traj, outfile: Path):
         plt.show()
     else:
         plt.savefig(outfile)
-        logging.info(f"Saved to {outfile}")
+        logger.info(f"Saved to {outfile}")
     plt.close()
 
 
@@ -56,7 +56,7 @@ def click_points(event, x, y, _flags, params):
     # Function to record the clicks.
     YROWS = common.img_.shape[0]
     if event == cv.EVENT_LBUTTONDOWN:
-        logging.info(f"You clicked on {(x, YROWS-y)}")
+        logger.info(f"You clicked on {(x, YROWS-y)}")
         common.locations_.append(geometry.Point(x, YROWS - y))
 
 
@@ -80,7 +80,7 @@ def ask_user_to_locate_points(points, img):
         key = cv.waitKey(1) & 0xFF
         if key == "q":
             break
-    logging.info("You clicked %s" % common.locations_)
+    logger.info("You clicked %s" % common.locations_)
 
 
 def list_to_points(points) -> T.List[geometry.Point]:
@@ -122,35 +122,24 @@ def digitize_plot(
         ),
     ] = None,
 ):
-    assert infile.exists(), f"{infile} does not exists."
-    logging.info(f"Extracting trajectories from {infile}")
-
-    # reads into gray-scale.
-    common.img_ = image.normalize(cv.imread(str(infile), 0))
+    figure = image.Figure(infile)
 
     # remove grids.
-    common.img_ = grid.remove_grid(common.img_)
-    image.save_img_in_cache(common.img_, Path(f"{infile.name}.without_grid.png"))
-
-    # rescale it again.
-    common.img_ = image.normalize(common.img_)
-    logging.debug(" {common.img_.min()=} {common.img_.max()=}")
-    assert common.img_.max() <= 255
-    assert common.img_.min() < common.img_.mean() < common.img_.max(), "Could not read meaningful data"
+    figure.remove_grid()
     image.save_img_in_cache(common.img_, infile.name)
 
     common.points_ = list_to_points(data_point)
     common.locations_ = list_to_points(location)
-    logging.debug(f"data points {data_point} → location on image {location}")
+    logger.debug(f"data points {data_point} → location on image {location}")
 
     if len(common.locations_) != len(common.points_):
-        logging.warning(
+        logger.warning(
             "Either the location of data-points are not specified or their numbers don't"
             " match with given datapoints. Asking user..."
         )
         ask_user_to_locate_points(common.points_, common.img_)
 
-    traj = image.process_image(common.img_, "_image")
+    traj = figure.trajectories()
 
     if plot_file is not None:
         plot_traj(traj, plot_file)
@@ -159,7 +148,7 @@ def digitize_plot(
     with open(outfile, "w") as f:
         for r in traj:
             f.write("%g %g\n" % (r))
-    logging.info("Wrote trajectory to %s" % outfile)
+    logger.info("Wrote trajectory to %s" % outfile)
 
 
 def main() -> T.Any:

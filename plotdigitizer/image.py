@@ -3,7 +3,7 @@
 
 from pathlib import Path
 import typing as T
-import logging
+from loguru import logger
 
 import cv2 as cv
 import numpy as np
@@ -11,17 +11,45 @@ import numpy.typing as npt
 
 from plotdigitizer import common
 from plotdigitizer import geometry
+from plotdigitizer import grid
 from plotdigitizer.trajectory import find_trajectory
 
+class Figure:
+    def __init__(self, path: Path):
+        assert path.exists(), f"{path} does not exists."
+        logger.info(f"Reading {path}")
+        self.path = path
+        self.orignal = cv.imread(self.path)
+        self.imgs = [("orig-gray-normalized", normalize(cv.imread(self.path, 0)))]
+
+    def remove_grid(self):
+        self._append("remove-grid", grid.remove_grid(self._last()))
+        save_img_in_cache(self._last(), Path(f"{self.path.name}.without_grid.png"))
+        self._append("normalize", normalize(self._last()))
+        img = self._last()
+        logger.debug(f" {img.min()=} {img.max()=}")
+        assert img.max() <= 255
+        assert img.min() < img.mean() < img.max(), "Could not read meaningful data"
+
+    def trajectories(self):
+        return process_image(self._last(), "_image")
+
+    def extract_trajectories(self):
+        logger.info(f"Extracting trajectories from {infile}")
+
+    def _last(self):
+        return self.imgs[-1][1]
+
+    def _append(self, operation: str, img):
+         self.imgs.append((operation, img))
 
 def process_image(img, cache_key: T.Optional[str] = None):
     global params_
-    global args_
     common.params_ = compute_foregrond_background_stats(img)
 
     T = transform_axis(img, erase_near_axis=3)
     assert img.std() > 0.0, "No data in the image!"
-    logging.info(f" {img.mean()}  {img.std()}")
+    logger.info(f" {img.mean()}  {img.std()}")
     if cache_key is not None:
         save_img_in_cache(img, f"{cache_key}.transformed_axis.png")
 
@@ -43,7 +71,7 @@ def compute_foregrond_background_stats(img) -> T.Dict[str, T.Any]:
     bgcolor, trajcolors = find_trajectory_colors(img)
     params["background"] = bgcolor
     params["timeseries_colors"] = trajcolors
-    logging.debug(f" computed parameters: {params}")
+    logger.debug(f" computed parameters: {params}")
     return params
 
 
@@ -78,7 +106,7 @@ def find_trajectory_colors(
 
     # we assume that bgcolor is close to white.
     if bgcolor < 128:
-        logging.error(
+        logger.error(
             "I computed that background is 'dark' which is unacceptable to me."
         )
         quit(-1)
@@ -108,10 +136,10 @@ def transform_axis(img, erase_near_axis: int = 0):
     T = axis_transformation(common.points_, common.locations_)
     p = geometry.find_origin(common.locations_)
     offCols, offRows = p.x, p.y
-    logging.info(f"{common.locations_} → origin {offCols}, {offRows}")
+    logger.info(f"{common.locations_} → origin {offCols}, {offRows}")
     img[:, : offCols + erase_near_axis] = common.params_["background"]
     img[-offRows - erase_near_axis :, :] = common.params_["background"]
-    logging.debug(f"Tranformation params: {T}")
+    logger.debug(f"Tranformation params: {T}")
     return T
 
 
@@ -122,7 +150,7 @@ def save_img_in_cache(
         filename = Path(f"{common.data_to_hash(img)}.png")
     outpath = common.cache() / filename
     cv.imwrite(str(outpath), np.array(img))
-    logging.debug(f" Saved to {outpath}")
+    logger.debug(f" Saved to {outpath}")
 
 
 # Thanks https://codereview.stackexchange.com/a/185794
