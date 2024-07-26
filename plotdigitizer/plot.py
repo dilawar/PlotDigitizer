@@ -25,7 +25,7 @@ def plot_images(images_with_title):
     num_rows = min(1, total_images // num_cols)
     for i, (title, img) in enumerate(images_with_title):
         logger.debug(f"Plotting `{title}` as index {i+1}")
-        plt.subplot(num_rows, num_cols, i+1)
+        plt.subplot(num_rows, num_cols, i + 1)
         plt.imshow(img, interpolation="none")
         plt.axis(False)
         plt.title(title)

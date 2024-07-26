@@ -61,16 +61,26 @@ def digitize_plot(
             help="Try to remove grid.",
         ),
     ] = False,
+    invert_image: Annotated[
+        bool,
+        typer.Option(
+            "--invert-image",
+            "-ii",
+            help="Invert image (use it when background is dark).",
+        ),
+    ] = False,
     debug: Annotated[
         bool,
         typer.Option(
             "--debug",
-            "-l",
+            "-d",
             help="Just analyze the image and dump coodinates.  Useful when developing/debugging.",
         ),
     ] = False,
 ):
     figure = image.Figure(infile, data_point, location)
+    if invert_image:
+        figure.invert_image()
 
     # remove grids.
     if remove_grid:

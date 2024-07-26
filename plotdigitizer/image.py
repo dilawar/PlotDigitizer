@@ -49,6 +49,11 @@ class Figure:
         assert img.max() <= 255
         assert img.min() < img.mean() < img.max(), "Could not read meaningful data"
 
+    def invert_image(self):
+        logger.info("Inverting the image...")
+        inv_img = cv.bitwise_not(self._last())
+        self._append("inverted", inv_img)
+
     def trajectories(self):
         return process_image(self._last(), "_image")
 
