@@ -53,11 +53,28 @@ def digitize_plot(
             "--output", "-o", help="Name of the output file (default <INPUT>.traj.csv)"
         ),
     ] = None,
+    remove_grid: Annotated[
+        bool,
+        typer.Option(
+            "--remove-grid",
+            "-rg",
+            help="Try to remove grid.",
+        ),
+    ] = False,
+    debug: Annotated[
+        bool,
+        typer.Option(
+            "--debug",
+            "-l",
+            help="Just analyze the image and dump coodinates.  Useful when developing/debugging.",
+        ),
+    ] = False,
 ):
     figure = image.Figure(infile, data_point, location)
 
     # remove grids.
-    figure.remove_grid()
+    if remove_grid:
+        figure.remove_grid(debug)
 
     # map the axis
     figure.map_axis()

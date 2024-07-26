@@ -36,8 +36,12 @@ class Figure:
         self.orignal = cv.imread(self.path)
         self.imgs = [("orig-gray-normalized", normalize(cv.imread(self.path, 0)))]
 
-    def remove_grid(self):
-        self._append("remove-grid", grid.remove_grid(self._last()))
+    def remove_grid(self, debug: bool):
+        image_with_grid = grid.remove_grid(self._last())
+        self._append("remove-grid", image_with_grid)
+        if debug:
+            plot.plot_images(self.imgs[-2::])
+
         save_img_in_cache(self._last(), Path(f"{self.path.name}.without_grid.png"))
         self._append("normalize", normalize(self._last()))
         img = self._last()

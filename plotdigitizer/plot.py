@@ -17,8 +17,22 @@ def show_frame(img, msg="MSG: "):
     cv.imshow(common.WindowName_, newImg)
 
 
+def plot_images(images_with_title):
+    import matplotlib.pyplot as plt
+
+    total_images = len(images_with_title)
+    num_cols = 2
+    num_rows = min(1, total_images // num_cols)
+    for i, (title, img) in enumerate(images_with_title):
+        logger.debug(f"Plotting `{title}` as index {i+1}")
+        plt.subplot(num_rows, num_cols, i+1)
+        plt.imshow(img, interpolation="none")
+        plt.axis(False)
+        plt.title(title)
+    plt.show()
+
+
 def plot_traj(traj, img, outfile: T.Optional[Path] = None):
-    global locations_
     import matplotlib.pyplot as plt
 
     x, y = zip(*traj)
