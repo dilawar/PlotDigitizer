@@ -12,12 +12,26 @@ import numpy.typing as npt
 from plotdigitizer import common
 from plotdigitizer import geometry
 from plotdigitizer import grid
+from plotdigitizer import plot
 from plotdigitizer.trajectory import find_trajectory
 
+
+def click_points(event, x, y, _flags, params):
+    """callback for opencv image"""
+    assert common.img_ is not None, "No data set"
+    # Function to record the clicks.
+    YROWS = common.img_.shape[0]
+    if event == cv.EVENT_LBUTTONDOWN:
+        logger.info(f"You clicked on {(x, YROWS-y)}")
+        common.locations_.append(geometry.Point(x, YROWS - y))
+
+
 class Figure:
-    def __init__(self, path: Path):
+    def __init__(self, path: Path, coordinates: T.List[str], indices: T.List[str]):
         assert path.exists(), f"{path} does not exists."
         logger.info(f"Reading {path}")
+        self.indices = list_to_points(indices)
+        self.coordinates = list_to_points(coordinates)
         self.path = path
         self.orignal = cv.imread(self.path)
         self.imgs = [("orig-gray-normalized", normalize(cv.imread(self.path, 0)))]
@@ -37,11 +51,30 @@ class Figure:
     def extract_trajectories(self):
         logger.info(f"Extracting trajectories from {infile}")
 
+    def map_axis(self):
+        logger.info("Mapping axis...")
+        logger.debug(
+            f"data points {self.coordinates} → location on image {self.indices}"
+        )
+
+        if len(self.coordinates) != len(self.indices):
+            logger.warning(
+                "Either the location of data-points on the image is not specified or their numbers don't"
+                " match with given datapoints. Asking user to fill the missing information..."
+            )
+
+            # next function uses callback. Needs a global variable to collect
+            # data.
+            common.locations_ = self.indices
+            self.indices = ask_user_to_locate_points(self.coordinates, self._last())
+        assert len(self.coordinates) == len(self.indices)
+
     def _last(self):
         return self.imgs[-1][1]
 
     def _append(self, operation: str, img):
-         self.imgs.append((operation, img))
+        self.imgs.append((operation, img))
+
 
 def process_image(img, cache_key: T.Optional[str] = None):
     global params_
@@ -157,3 +190,27 @@ def save_img_in_cache(
 def normalize(img):
     """normalize image to 0, 255"""
     return np.interp(img, (img.min(), img.max()), (0, 255)).astype(np.uint8)
+
+
+def list_to_points(points) -> T.List[geometry.Point]:
+    ps = [geometry.Point.fromCSV(x) for x in points]
+    return ps
+
+
+def ask_user_to_locate_points(points, img) -> list:
+    """Ask user to map axis. Callback function save selected points in
+    common.locations_"""
+    cv.namedWindow(common.WindowName_)
+    cv.setMouseCallback(common.WindowName_, click_points)
+    while len(common.locations_) < len(points):
+        i = len(common.locations_)
+        p = points[i]
+        pLeft = len(points) - len(common.locations_)
+        plot.show_frame(img, "Please click on %s (%d left)" % (p, pLeft))
+        if len(common.locations_) == len(points):
+            break
+        key = cv.waitKey(1) & 0xFF
+        if key == "q":
+            break
+    logger.info("You clicked %s" % common.locations_)
+    return common.locations_

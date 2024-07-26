@@ -18,6 +18,7 @@ points_: T.List[geometry.Point] = []
 
 img_ = np.zeros((1, 1))
 
+
 def cache() -> Path:
     c = Path(tempfile.gettempdir()) / "plotdigitizer"
     c.mkdir(parents=True, exist_ok=True)

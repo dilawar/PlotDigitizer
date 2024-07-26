@@ -4,14 +4,12 @@ __email__ = "dilawar.s.rajput@gmail.com"
 import typing as T
 from pathlib import Path
 
-import cv2 as cv
-
-import numpy as np
 import typer
 from typing_extensions import Annotated
 
 from plotdigitizer import grid
 from plotdigitizer import image
+from plotdigitizer import plot
 from plotdigitizer import geometry
 from plotdigitizer import common
 
@@ -20,72 +18,6 @@ from loguru import logger
 
 
 app = typer.Typer()
-
-
-def plot_traj(traj, outfile: Path):
-    global locations_
-    import matplotlib.pyplot as plt
-
-    x, y = zip(*traj)
-    plt.figure()
-    plt.subplot(211)
-
-    for p in common.locations_:
-        csize = common.img_.shape[0] // 40
-        cv.circle(
-            common.img_, (int(p.x), int(common.img_.shape[0] - p.y)), int(csize), (128, 128, 128), -1
-        )
-
-    plt.imshow(common.img_, interpolation="none", cmap="gray")
-    plt.axis(False)
-    plt.title("Original")
-    plt.subplot(212)
-    plt.title("Reconstructed")
-    plt.plot(x, y)
-    plt.tight_layout()
-    if not str(outfile):
-        plt.show()
-    else:
-        plt.savefig(outfile)
-        logger.info(f"Saved to {outfile}")
-    plt.close()
-
-
-def click_points(event, x, y, _flags, params):
-    assert common.img_ is not None, "No data set"
-    # Function to record the clicks.
-    YROWS = common.img_.shape[0]
-    if event == cv.EVENT_LBUTTONDOWN:
-        logger.info(f"You clicked on {(x, YROWS-y)}")
-        common.locations_.append(geometry.Point(x, YROWS - y))
-
-
-def show_frame(img, msg="MSG: "):
-    msgImg = np.zeros(shape=(50, img.shape[1]))
-    cv.putText(msgImg, msg, (1, 40), 0, 0.5, 255)
-    newImg = np.vstack((img, msgImg.astype(np.uint8)))
-    cv.imshow(common.WindowName_, newImg)
-
-
-def ask_user_to_locate_points(points, img):
-    cv.namedWindow(common.WindowName_)
-    cv.setMouseCallback(common.WindowName_, click_points)
-    while len(common.locations_) < len(points):
-        i = len(common.locations_)
-        p = points[i]
-        pLeft = len(points) - len(common.locations_)
-        show_frame(img, "Please click on %s (%d left)" % (p, pLeft))
-        if len(common.locations_) == len(points):
-            break
-        key = cv.waitKey(1) & 0xFF
-        if key == "q":
-            break
-    logger.info("You clicked %s" % common.locations_)
-
-
-def list_to_points(points) -> T.List[geometry.Point]:
-    ps = [geometry.Point.fromCSV(x) for x in points]
-    return ps
 
 
 @app.command()
@@ -122,27 +54,19 @@ def digitize_plot(
         ),
     ] = None,
 ):
-    figure = image.Figure(infile)
+    figure = image.Figure(infile, data_point, location)
 
     # remove grids.
     figure.remove_grid()
-    image.save_img_in_cache(common.img_, infile.name)
 
-    common.points_ = list_to_points(data_point)
-    common.locations_ = list_to_points(location)
-    logger.debug(f"data points {data_point} → location on image {location}")
+    # map the axis
+    figure.map_axis()
 
-    if len(common.locations_) != len(common.points_):
-        logger.warning(
-            "Either the location of data-points are not specified or their numbers don't"
-            " match with given datapoints. Asking user..."
-        )
-        ask_user_to_locate_points(common.points_, common.img_)
-
+    # compute trajectories
     traj = figure.trajectories()
 
     if plot_file is not None:
-        plot_traj(traj, plot_file)
+        plot.plot_traj(traj, figure._last(), plot_file)
 
     outfile = output or f"{infile}.traj.csv"
     with open(outfile, "w") as f:
