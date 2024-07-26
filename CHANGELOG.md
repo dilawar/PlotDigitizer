@@ -1,5 +1,10 @@
 # Unreleased
 
+- Major refactor. CLI is now based on typer.
+- Adds two cli options: `--invert-image` that can be used be invert images with
+  dark-background and `--remove-grid` that can be used to remove grids (default
+  `False`). 
+
 # [0.3.0] 2024-07-14
 
 It is a maintenance release. The minimum supported python version is 3.9.
