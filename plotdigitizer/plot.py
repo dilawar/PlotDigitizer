@@ -18,7 +18,6 @@ def show_frame(img, msg="MSG: "):
 
 
 def plot_images(images_with_title):
-    import matplotlib.pyplot as plt
 
     total_images = len(images_with_title)
     num_cols = 2
@@ -33,7 +32,6 @@ def plot_images(images_with_title):
 
 
 def plot_traj(traj, img, outfile: T.Optional[Path] = None):
-    import matplotlib.pyplot as plt
 
     x, y = zip(*traj)
     plt.figure()

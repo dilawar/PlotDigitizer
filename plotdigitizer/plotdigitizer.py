@@ -7,11 +7,8 @@ from pathlib import Path
 import typer
 from typing_extensions import Annotated
 
-from plotdigitizer import grid
 from plotdigitizer import image
 from plotdigitizer import plot
-from plotdigitizer import geometry
-from plotdigitizer import common
 
 # Logger
 from loguru import logger
