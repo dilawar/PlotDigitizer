@@ -8,7 +8,7 @@ import typer
 from typing_extensions import Annotated
 
 from plotdigitizer import image
-from plotdigitizer import plot
+from plotdigitizer.plot import plot_traj
 
 # Logger
 from loguru import logger
@@ -40,9 +40,9 @@ def digitize_plot(
             " If not given, you will be asked to click on the figure.",
         ),
     ] = [],
-    plot_file: Annotated[
+    plot: Annotated[
         T.Optional[Path],
-        typer.Option("--plot-file", help="Plot the final result. Requires matplotlib"),
+        typer.Option("--plot", help="Plot the final result. Requires matplotlib"),
     ] = None,
     output: Annotated[
         T.Optional[Path],
@@ -89,8 +89,8 @@ def digitize_plot(
     # compute trajectories
     traj = figure.trajectories()
 
-    if plot_file is not None:
-        plot.plot_traj(traj, figure._last(), plot_file)
+    if plot is not None:
+        plot_traj(traj, figure._last(), plot)
 
     outfile = output or f"{infile}.traj.csv"
     with open(outfile, "w") as f:

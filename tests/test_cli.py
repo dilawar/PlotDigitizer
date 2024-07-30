@@ -9,14 +9,14 @@ from pathlib import Path
 HERE = Path(__file__).parent.resolve()
 
 
-def _run_cmdline(infile: Path, points, locations):
+def _run_cmdline(infile: Path, points, locations, extra: str = ""):
     cmd = f"plotdigitizer {str(infile)} "
     pts = " ".join([f"-p {','.join(map(str,pt))}" for pt in points])
     locs = " ".join([f"-l {','.join(map(str,pt))}" for pt in locations])
     cmd += f"{pts} {locs}"
     outfile = infile.with_suffix(".result.png")
     trajfile = infile.with_suffix(".result.csv")
-    cmd += f" --plot {str(outfile)} --output {trajfile}"
+    cmd += f" --plot {str(outfile)} --output {trajfile} {extra}"
     r = subprocess.run(cmd, check=True, shell=True)
     assert r.returncode == 0, f"Failed test {r.returncode}"
     return trajfile
@@ -61,5 +61,6 @@ def test_grid():
         HERE / ".." / "figures" / "graph_with_grid.png",
         [(200, 0), (1000, 0), (0, 50)],
         [(269, 69), (1780, 69), (81, 542)],
+        "--remove-grid"
     )
     _check_csv_file(csvfile)
