@@ -72,7 +72,6 @@ class Figure:
             save_img_in_cache(img, f"{cache_key}.final.png")
         return traj
 
-
     def find_trajectory(self, img: np.ndarray, pixel: int, T):
         logger.info(f"Extracting trajectory for color {pixel}")
         assert (
@@ -90,7 +89,7 @@ class Figure:
 
         assert traj, "Empty trajectory"
 
-        # this is a simple fit using median.
+        # this is a simple approximation using median.
         new = np.zeros_like(img)
         res = fit_trajectory_using_median(traj, T, new)
         return res, np.vstack((img, new))
@@ -238,8 +237,10 @@ def ask_user_to_locate_points(points, img) -> list:
     logger.info("You clicked %s" % common.locations_)
     return common.locations_
 
+
 def _valid_px(val: int) -> int:
     return min(max(0, val), 255)
+
 
 def _find_center(vec):
     return np.median(vec)
@@ -275,7 +276,9 @@ def fit_trajectory_using_median(traj, T, img):
         cv.circle(img, (x, int(y)), 1, 255, -1)
         x1 = (x - offX) / sX
         y1 = (r - y - offY) / sY
-        res.append((x1, y1))
+
+        # opencv and numpy coordinate systems are not the same!!
+        res.append((-x1, -y1))
 
     # sort by x-axis.
     return sorted(res)

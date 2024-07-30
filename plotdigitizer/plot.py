@@ -32,7 +32,6 @@ def plot_images(images_with_title):
 
 
 def plot_traj(traj, img, outfile: T.Optional[Path] = None):
-
     x, y = zip(*traj)
     plt.figure()
     plt.subplot(211)

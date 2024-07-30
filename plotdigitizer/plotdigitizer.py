@@ -35,7 +35,7 @@ def digitize_plot(
         typer.Option(
             "--location",
             "-l",
-            help="Location of a points on figure in pixels (integer)[."
+            help="Location of a pixels corresponding to `data-points` on the figure."
             " These values should appear in the same order as -p option."
             " If not given, you will be asked to click on the figure.",
         ),
