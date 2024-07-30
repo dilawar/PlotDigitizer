@@ -57,9 +57,10 @@ class Figure:
     def trajectories(self, cache_key: T.Optional[str] = None):
         img = self._last()
         common.params_ = compute_foregrond_background_stats(img)
+
         T = transform_axis(img, self.coordinates, self.indices, erase_near_axis=3)
         assert img.std() > 0.0, "No data in the image!"
-        logger.info(f" {img.mean()}  {img.std()}")
+        logger.debug(f" {img.mean()}  {img.std()}")
         if cache_key is not None:
             save_img_in_cache(img, f"{cache_key}.transformed_axis.png")
 
@@ -189,7 +190,7 @@ def transform_axis(img, coordinates, indices, erase_near_axis: int = 0):
     # extra: extra rows and cols to erase. Help in containing error near axis.
     # compute the transformation between old and new axis.
     T = axis_transformation(indices, coordinates)
-    p = geometry.find_origin(coordinates)
+    p = geometry.find_origin(indices)
     offCols, offRows = p.x, p.y
     logger.info(f"{coordinates} → origin {offCols}, {offRows}")
     img[:, : offCols + erase_near_axis] = common.params_["background"]
@@ -205,7 +206,7 @@ def save_img_in_cache(
         filename = Path(f"{common.data_to_hash(img)}.png")
     outpath = common.cache() / filename
     cv.imwrite(str(outpath), np.array(img))
-    logger.debug(f" Saved to {outpath}")
+    logger.debug(f"Saved in cache: {outpath}")
 
 
 # Thanks https://codereview.stackexchange.com/a/185794

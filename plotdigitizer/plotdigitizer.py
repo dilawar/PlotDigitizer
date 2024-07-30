@@ -40,7 +40,7 @@ def digitize_plot(
             " If not given, you will be asked to click on the figure.",
         ),
     ] = [],
-    plot: Annotated[
+    plot_file: Annotated[
         T.Optional[Path],
         typer.Option("--plot", help="Plot the final result. Requires matplotlib"),
     ] = None,
@@ -89,8 +89,9 @@ def digitize_plot(
     # compute trajectories
     traj = figure.trajectories()
 
-    if plot is not None:
-        plot_traj(traj, figure._last(), plot)
+    if plot_file is not None:
+        logger.info(f"Plogging data to {plot_file}")
+        plot_traj(traj, figure._last(), plot_file)
 
     outfile = output or f"{infile}.traj.csv"
     with open(outfile, "w") as f:

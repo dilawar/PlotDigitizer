@@ -6,7 +6,10 @@ all : test
 test_install :
 	$(POETRY) install
 
-test: lint test_install
+ci: lint test_install test
+
+
+test:
 	$(POETRY) run pytest -ra -q
 
 upload:

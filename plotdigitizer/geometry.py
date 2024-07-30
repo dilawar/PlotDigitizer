@@ -4,6 +4,7 @@ __email__ = "dilawar.s.rajput@gmail.com"
 import typing as T
 import statistics
 import math
+from loguru import logger
 
 
 class Point:
@@ -30,19 +31,23 @@ class Point:
 
 
 def find_origin(pts: T.List[Point]) -> Point:
-    """Compute origin of given points."""
+    """Compute origin out of given given points. Two of them must be
+    horizontally co-linear.
+    """
+    logger.debug(f"Finding origin in {pts}")
     horizontal = set()
     for i, p1 in enumerate(pts):
         for _, p2 in enumerate(pts[i + 1 :]):
-            if abs(p1.x - p2.x) <= 2:
-                continue
             m = (p2.y - p1.y) / (p2.x - p1.x)
+            logger.debug(f"Checking if {p1=} and {p2=} are on x-axis: {m=}...")
             if abs(m) < math.tan(math.pi / 180 * 5):  # <5 deg is horizontal.
                 horizontal.add(p1)
                 horizontal.add(p2)
 
     points = set(pts)
     assert len(horizontal) > 1, f"Must have at least two colinear points {horizontal}"
+    logger.debug(f" horizontal points {horizontal}")
+
     verticals = points - horizontal
     assert len(verticals) > 0, "Must be at least one vertical point"
     originY = statistics.mean([p.y for p in horizontal])
