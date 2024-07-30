@@ -15,9 +15,13 @@ upload:
 install:
 	python3 -m pip install .
 
-lint:
+lint: mypy
 	$(POETRY) run ruff check . 
+
+mypy:
 	$(POETRY) run mypy --ignore-missing-imports --install-types --non-interactive plotdigitizer tests
 
 fmt:
 	$(POETRY) run ruff format .
+
+.PHONY: fmt mypy lint install upload test test_install all

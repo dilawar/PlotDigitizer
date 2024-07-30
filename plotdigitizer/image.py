@@ -33,8 +33,8 @@ class Figure:
         self.indices = list_to_points(indices)
         self.coordinates = list_to_points(coordinates)
         self.path = path
-        self.orignal = cv.imread(self.path)
-        self.imgs = [("orig-gray-normalized", normalize(cv.imread(self.path, 0)))]
+        self.orignal = cv.imread(str(self.path))
+        self.imgs = [("orig-gray-normalized", normalize(cv.imread(str(self.path), 0)))]
 
     def remove_grid(self, debug: bool):
         image_with_grid = grid.remove_grid(self._last())
