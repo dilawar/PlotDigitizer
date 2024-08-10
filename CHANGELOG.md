@@ -1,4 +1,7 @@
-# Unreleased
+# Unreleased 
+
+
+# [0.3.1] - 2024-08-10
 
 - Major refactor. CLI is now based on typer.
 - Adds two cli options: `--invert-image` that can be used be invert images with
