@@ -4,8 +4,7 @@ A Python3 command line utility to digitize plots in batch mode.
 
 This utility is useful when you have a lot of similar plots such as EEG, ECG recordings. See examples below.
 
-For one-off use cases, you will find web-based digitizer [WebPlotDigitizer](https://apps.automeris.io/wpd4/) 
-by Ankit Rohatagi much more easier to use.
+For one-off use cases, you can use my web utilty [Plot Extractor](https://tools.dilawars.me/tool/plot-extractor).
 
 ## Installation
 
@@ -142,5 +141,4 @@ Open an issue and please attach the sample plot.
 
 ## Related Projects
 
-1.  [WebPlotDigitizer](https://apps.automeris.io/wpd4/) by Ankit
-Rohatagi is very versatile.
+1. https://tools.dilawars.me/tool/plot-extractor is web-utility to extract data manually.
