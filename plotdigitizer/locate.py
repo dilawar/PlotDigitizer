@@ -58,7 +58,7 @@ def _add_axis(img):
     return img
 
 
-def locate(imgfile: Path):
+def locate(imgfile: Path) -> None:
     global img_
     logging.info(f"Loading {imgfile}")
     assert imgfile.is_file(), f"{imgfile} does not exists or could not be read"
@@ -74,7 +74,7 @@ def locate(imgfile: Path):
             break
 
 
-def main():
+def main() -> None:
     import argparse
 
     parser = argparse.ArgumentParser("Find coordinate of points")

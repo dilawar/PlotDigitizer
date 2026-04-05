@@ -16,7 +16,7 @@ from plotdigitizer import grid
 from plotdigitizer import plot
 
 
-def click_points(event, x, y, _flags, params):
+def click_points(event, x, y, _flags, params) -> None:
     """callback for opencv image"""
     assert common.img_ is not None, "No data set"
     # Function to record the clicks.
@@ -36,7 +36,7 @@ class Figure:
         self.orignal = cv.imread(str(self.path))
         self.imgs = [("orig-gray-normalized", normalize(cv.imread(str(self.path), 0)))]
 
-    def remove_grid(self, debug: bool):
+    def remove_grid(self, debug: bool) -> None:
         image_with_grid = grid.remove_grid(self._last())
         self._append("remove-grid", image_with_grid)
         if debug:
@@ -49,7 +49,7 @@ class Figure:
         assert img.max() <= 255
         assert img.min() < img.mean() < img.max(), "Could not read meaningful data"
 
-    def invert_image(self):
+    def invert_image(self) -> None:
         logger.info("Inverting the image...")
         inv_img = cv.bitwise_not(self._last())
         self._append("inverted", inv_img)
@@ -94,7 +94,7 @@ class Figure:
         res = fit_trajectory_using_median(traj, T, new)
         return res, np.vstack((img, new))
 
-    def map_axis(self):
+    def map_axis(self) -> None:
         logger.info("Mapping axis...")
         logger.debug(
             f"data points {self.coordinates} → location on image {self.indices}"
@@ -200,7 +200,7 @@ def transform_axis(img, coordinates, indices, erase_near_axis: int = 0):
 
 def save_img_in_cache(
     img: npt.ArrayLike, filename: T.Optional[T.Union[Path, str]] = None
-):
+) -> None:
     if filename is None:
         filename = Path(f"{common.data_to_hash(img)}.png")
     outpath = common.cache() / filename

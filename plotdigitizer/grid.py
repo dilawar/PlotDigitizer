@@ -62,7 +62,7 @@ def remove_grid(
     return img
 
 
-def test_remove_grid(imgfile: Path, debug: bool = True):
+def test_remove_grid(imgfile: Path, debug: bool = True) -> None:
     img = cv.imread(str(imgfile), 0)
     if debug:
         _save_fig(img, f"{TEMP}/orig.png")

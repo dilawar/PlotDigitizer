@@ -55,7 +55,7 @@ def find_origin(pts: T.List[Point]) -> Point:
     return Point(originX, originY)
 
 
-def test_origin():
+def test_origin() -> None:
     pts = [Point(81, 69), Point(1779, 68), Point(81, 449)]
     p = find_origin(pts)
     assert p == Point(81, 68), p == Point(81, 68)
