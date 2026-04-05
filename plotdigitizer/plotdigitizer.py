@@ -74,7 +74,7 @@ def digitize_plot(
             help="Just analyze the image and dump coodinates.  Useful when developing/debugging.",
         ),
     ] = False,
-):
+) -> None:
     figure = image.Figure(infile, data_point, location)
     if invert_image:
         figure.invert_image()

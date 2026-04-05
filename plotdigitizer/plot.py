@@ -10,14 +10,14 @@ from loguru import logger
 from plotdigitizer import common
 
 
-def show_frame(img, msg="MSG: "):
+def show_frame(img, msg: str="MSG: ") -> None:
     msgImg = np.zeros(shape=(50, img.shape[1]))
     cv.putText(msgImg, msg, (1, 40), 0, 0.5, 255)
     newImg = np.vstack((img, msgImg.astype(np.uint8)))
     cv.imshow(common.WindowName_, newImg)
 
 
-def plot_images(images_with_title):
+def plot_images(images_with_title) -> None:
 
     total_images = len(images_with_title)
     num_cols = 2
@@ -31,7 +31,7 @@ def plot_images(images_with_title):
     plt.show()
 
 
-def plot_traj(traj, img, outfile: T.Optional[Path] = None):
+def plot_traj(traj, img, outfile: T.Optional[Path] = None) -> None:
     x, y = zip(*traj)
     plt.figure()
     plt.subplot(211)
